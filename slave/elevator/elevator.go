@@ -1,3 +1,33 @@
+import (
+	"/slave"
+)
+
+type Elevator struct {
+	direction    elevio.MotorDirection
+	currentFloor int
+	obs 		 bool
+	priOrder	 elevio.ButtonEvent
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // package elevator
 
 // import (
@@ -7,6 +37,7 @@
 // type Elevator struct {
 // 	direction    elevio.MotorDirection
 // 	currentFloor int
+//	obs			 bool	 
 // }
 
 // func (e *Elevator) GetDirection() elevio.MotorDirection {
