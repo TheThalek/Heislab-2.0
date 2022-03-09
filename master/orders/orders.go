@@ -10,14 +10,17 @@ const ConstNumFloors int = 4
 
 const (
 	//OT = OrderType
-	OT_NoOrder = 0
-	OT_Order   = 1
+	OT_NoOrder    = 0
+	OT_Order      = 1
+	OT_InProgress = 2
 )
 const (
 	//CT = CostType
 	CT_DistanceCost        = 150
 	CT_DirSwitchCost       = 100
 	CT_DoubleDirSwitchCost = 1000
+
+	CT_ObsCost = 10000
 )
 
 func UpdateOrders(orderPanel *[ConstNumFloors][3]int, receiver <-chan elevio.ButtonEvent) {
@@ -103,7 +106,7 @@ func PriorityOrder(orderPanel *[ConstNumFloors][3]int, elevFloor int, elevDirect
 	return priorityOrder
 }
 
-func PollPriorityOrder(priOrderChan chan elevio.ButtonEvent, orderPanel *[ConstNumFloors][3]int, myElevator *elevator.Elevator) {
+func PollPriorityOrder(priOrderChan <-chan elevio.ButtonEvent, orderPanel *[ConstNumFloors][3]int, myElevator *elevator.Elevator) {
 	for {
 		order := PriorityOrder(orderPanel, myElevator.GetCurrentFloor(), myElevator.GetDirection())
 		if order.Floor != -1 {
