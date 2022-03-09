@@ -1,3 +1,3 @@
-module Heislab2.0-go
+module Driver-go
 
 go 1.16
