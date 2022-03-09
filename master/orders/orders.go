@@ -7,6 +7,7 @@ import (
 )
 
 const ConstNumFloors int = 4
+const ConstNumElevators int = 3
 
 const (
 	//OT = OrderType
@@ -16,20 +17,21 @@ const (
 )
 const (
 	//CT = CostType
-	CT_DistanceCost        = 150
+	CT_DistanceCost        = 10
 	CT_DirSwitchCost       = 100
 	CT_DoubleDirSwitchCost = 1000
-
 	CT_ObsCost = 10000
 )
 
-func UpdateOrders(orderPanel *[ConstNumFloors][3]int, receiver <-chan elevio.ButtonEvent) {
-	//Updates orderPanel matrix when receiver channel gets button calls
-	for {
-		order := <-receiver
-		SetOrder(orderPanel, order.Floor, int(order.Button), OT_Order)
-	}
+
+//ToDo: Calculate cost for each individual elevator
+//Orderpanel[] (constNumFloors-1) x (2 + constNumElevators -1)
+
+func UpdateMasterOrderPanel (){
+	//Todo get orders from the slave elevators and update the matrix
+
 }
+
 
 func GetOrder(orderPanel *[ConstNumFloors][3]int, floor int, button int) int {
 	return orderPanel[floor][button]
@@ -65,28 +67,71 @@ func calculateOrderCost(order elevio.ButtonEvent, elevFloor int, elevDirection e
 		cost += CT_DirSwitchCost
 		if newDirection != orderDirection {
 			cost += CT_DoubleDirSwitchCost
-			cost -= CT_DistanceCost * intAbs(orderFloor-elevFloor-1)
+			cost -= CT_DistanceCost * intAbs(orderFloor-elevFloor)
 		} else {
-			cost += CT_DistanceCost * intAbs(orderFloor-elevFloor-1)
+			cost += CT_DistanceCost * intAbs(orderFloor-elevFloor)
 		}
 	} else if newDirection != orderDirection {
 		cost += 0.8 * CT_DirSwitchCost
-		cost -= CT_DistanceCost * intAbs(orderFloor-elevFloor-1)
+		cost -= CT_DistanceCost * intAbs(orderFloor-elevFloor)
 	} else {
-		cost += CT_DistanceCost * intAbs(orderFloor-elevFloor-1)
+		cost += CT_DistanceCost * intAbs(orderFloor-elevFloor)
 	}
 
 	return cost
 }
 
+
+
+func PrioritizeOrders(MasterOrderPanel * [ConstNumFloors][ConstNumElevators+2], availableElevators [Elevator] type ){
+	//decide which elevator is the best to do an order
+	//Need direction for each elevator 
+	//for each elevator calculate the best order it should take
+	//Hvilken ordre er best for hver heis, og hvilken heis er best for ordren. 
+	test = 1;
+	for floor:=0; floor <len(ConstNumFloors); floor ++{
+		for btn:= 0; btn < len(ConstNumElevators+2):btn ++{
+			if MasterOrderPanel[floor][btn] = OT_Order{
+				order := elevio.ButtonEvent{
+					Floor: floor,
+					Button: elevio.ButtonType(btn),
+				}
+				var orderminimumcost int = 100000
+				betterElevator = nil
+				for elevator in availableElevators{
+					orderCostelevator := calculateOrderCost(order,elevator.currentFloor, elevator.direction)
+					if orderCostelevator < orderminimumcost{
+						//check if it can overwrite current order
+						orderminimumcost = orderCostelevator
+						elevatorCurrentOrderCost :=calculateOrderCost(elevator.priOrder, elevator.currentFloor, elevator.direction)
+						if orderCostelevator < elevatorCurrentOrderCost{
+							betterElevator  = elevator
+						}
+					}
+				}
+				//update order if there is a better option
+				if betterElevator{
+					//overwrite current order, set the value of the order to OT_order from OT_progress or smth
+					MasterOrderPanel[]
+				}
+
+			}
+		}
+	}
+
+	//return elv_1, elv_2, elv_3
+}
+
+
+
+///GAMMEL:
 func PriorityOrder(orderPanel *[ConstNumFloors][3]int, elevFloor int, elevDirection elevio.MotorDirection) elevio.ButtonEvent {
 	//Calculate for given elevator which order it should take using calculateOrderCost for each current order.
-	//fmt.Printf("Y00")
 	var priorityOrder elevio.ButtonEvent = elevio.ButtonEvent{
 		Floor:  -1,
 		Button: -1,
 	}
-	var minCost int = 100000 //change to infinity <3
+	var minCost int = 100000 //change to infinity
 	for floor := 0; floor < len(orderPanel); floor++ {
 		for btn := 0; btn < len(orderPanel[0]); btn++ {
 			if orderPanel[floor][btn] != OT_NoOrder {
