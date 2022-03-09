@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -16,15 +17,31 @@ import (
 type MessageOrigin string
 
 const (
-	Master MessageOrigin = "MASTER >> "
-	Slave                = "SLAVE >> "
+	Master MessageOrigin = "MASTER"
+	Slave                = "SLAVE"
 )
 
 type NetworkMessage struct {
-	Origin
-	Message string
-	Iter    int
+	Origin        MessageOrigin
+	ID            string
+	Content       string
+	MessageString string
 }
+
+func NewNetworkMessage(origin MessageOrigin, id string, content string) NetworkMessage {
+	return NetworkMessage{Origin: origin, ID: id, Content: content, MessageString: string(origin) + "; " + id + "; " + content}
+}
+func StringToNetworkMsg(msg string) NetworkMessage {
+	var netmsg NetworkMessage
+	msgSplit := strings.Split(msg, "; ")
+
+	netmsg = NewNetworkMessage(MessageOrigin(msgSplit[0]), msgSplit[1], msgSplit[2])
+
+	return netmsg
+}
+
+var orderPanel [4][3]int
+var prioriyOrders [3]int
 
 func main() {
 	// Our id can be anything. Here we pass it on the command line, using
@@ -65,9 +82,12 @@ func main() {
 
 	// The example message. We just send one of these every second.
 	go func() {
-		netMsg := NetworkMessage{"Hello from " + id, 0}
+		netMsg := NewNetworkMessage(
+			Master,
+			id,
+			"Orders: "+fmt.Sprint(orderPanel)+"; "+
+				"Priorities: "+fmt.Sprint(prioriyOrders))
 		for {
-			netMsg.Iter++
 			msgTx <- netMsg
 			time.Sleep(1 * time.Second)
 		}
@@ -83,7 +103,8 @@ func main() {
 			fmt.Printf("  Lost:     %q\n", p.Lost)
 
 		case a := <-msgRx:
-			fmt.Printf("Received: %#v\n", a)
+			fmt.Printf("Received: %#v\n", a.MessageString)
+			StringToNetworkMsg(a.MessageString)
 		}
 	}
 }
