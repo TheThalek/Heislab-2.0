@@ -1,9 +1,9 @@
 package slaveFSM
 
-import (
-	"slave/elevator"
-	"slave/elevator.io"
-)
+// import (
+// 	"slave/elevator"
+// 	"slave/elevator.io"
+// )
 
 numFloors := 4 //To do; Kanskje gjør denne "global", då den blir brukt av alle?
 
@@ -49,7 +49,7 @@ func slaveFSM(elevio.ButtonEvent ) {
 
 
 func main() {
-
+	
 }
 
 

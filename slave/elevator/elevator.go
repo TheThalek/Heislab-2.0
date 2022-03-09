@@ -1,5 +1,7 @@
 import (
-	"/slave"
+	"HEISLAB 2.0/slave/elevator"
+	"HEISLAB 2.0/slave/elevator.io"
+	"HEISLAB 2.0/slave/slaveFSM"
 )
 
 type Elevator struct {
