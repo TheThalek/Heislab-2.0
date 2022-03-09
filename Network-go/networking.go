@@ -11,9 +11,8 @@ import (
 	"time"
 )
 
-// We define some custom struct to send over the network.
-// Note that all members we want to transmit must be public. Any private members
-//  will be received as zero-values.
+const DELIM = "; "
+
 type MessageOrigin string
 
 const (
@@ -29,13 +28,13 @@ type NetworkMessage struct {
 }
 
 func NewNetworkMessage(origin MessageOrigin, id string, content string) NetworkMessage {
-	return NetworkMessage{Origin: origin, ID: id, Content: content, MessageString: string(origin) + "; " + id + "; " + content}
+	return NetworkMessage{Origin: origin, ID: id, Content: content, MessageString: string(origin) + DELIM + id + DELIM + content}
 }
 func StringToNetworkMsg(msg string) NetworkMessage {
 	var netmsg NetworkMessage
-	msgSplit := strings.Split(msg, "; ")
+	msgSplit := strings.Split(msg, DELIM)
 
-	netmsg = NewNetworkMessage(MessageOrigin(msgSplit[0]), msgSplit[1], msgSplit[2])
+	netmsg = NewNetworkMessage(MessageOrigin(msgSplit[0]), msgSplit[1], strings.Join(msgSplit[2:len(msgSplit)-1], DELIM))
 
 	return netmsg
 }
@@ -85,7 +84,7 @@ func main() {
 		netMsg := NewNetworkMessage(
 			Master,
 			id,
-			"Orders: "+fmt.Sprint(orderPanel)+"; "+
+			"Orders: "+fmt.Sprint(orderPanel)+DELIM+
 				"Priorities: "+fmt.Sprint(prioriyOrders))
 		for {
 			msgTx <- netMsg
