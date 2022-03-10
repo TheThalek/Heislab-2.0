@@ -1,11 +1,11 @@
 package main
 
 import (
-	"Driver-go/elevator"
-	"Driver-go/elevio"
+	"elevator"
+	"elevio"
 	"Driver-go/MS_FSM"
-	"Driver-go/Network-go"
-	"Driver-go/orders"
+	"networking"
+	"orders"
 	"singleFSM"
 )
 

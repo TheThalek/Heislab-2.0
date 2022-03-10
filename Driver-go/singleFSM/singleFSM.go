@@ -1,4 +1,4 @@
-package slaveFSM
+package singleFSM
 
 import (
 	"elevator"

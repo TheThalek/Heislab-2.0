@@ -1,3 +1,5 @@
+package MS_FSM
+
 // case init
 // case master
 // case slave
