@@ -5,7 +5,7 @@ import (
 	"elevio"
 )
 
-numFloors := 4 //To do; Kanskje gjør denne "global", då den blir brukt av alle?
+var numFloors := 4 //To do; Kanskje gjør denne "global", då den blir brukt av alle?
 
 
 func init() {
