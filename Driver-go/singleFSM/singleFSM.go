@@ -1,8 +1,8 @@
 package singleFSM
 
 import (
-	"elevator"
-	"elevio"
+	"Driver-go/elevator"
+	"Driver-go/elevio"
 )
 
 var numFloors := 4 //To do; Kanskje gjør denne "global", då den blir brukt av alle?

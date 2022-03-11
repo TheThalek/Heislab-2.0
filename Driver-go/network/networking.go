@@ -1,9 +1,9 @@
-package networking
+package network``
 
 import (
-	"Network-go/network/bcast"
-	"Network-go/network/localip"
-	"Network-go/network/peers"
+	"Driver-go/network/bcast"
+	"Driver-go/network/localip"
+	"Driver-go/network/peers"
 	"flag"
 	"fmt"
 	"os"
