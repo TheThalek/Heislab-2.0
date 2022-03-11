@@ -42,7 +42,7 @@ func StringToNetworkMsg(msg string) NetworkMessage {
 var orderPanel [4][3]int
 var prioriyOrders [3]int
 
-func main() {
+func pederSinMain() {
 	// Our id can be anything. Here we pass it on the command line, using
 	//  `go run main.go -id=our_id`
 	var id string
