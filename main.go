@@ -12,5 +12,5 @@ import (
 func main {
 	//MS_FSM.maikenSinMain()
 	//singleFSM.thaleSinMain()
-	//Network-go.pederSinMain()
+	//networking.pederSinMain()
 }
