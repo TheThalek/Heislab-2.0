@@ -4,27 +4,12 @@ import (
 	"Driver-go/elevio"
 )
 
-
 type Elevator struct {
 	direction    elevio.MotorDirection
 	currentFloor int
-	obs 		 bool
-	priOrder	 elevio.ButtonEvent
+	obs          bool
+	priOrder     elevio.ButtonEvent
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // package elevator
 
@@ -35,7 +20,7 @@ type Elevator struct {
 // type Elevator struct {
 // 	direction    elevio.MotorDirection
 // 	currentFloor int
-//	obs			 bool	 
+//	obs			 bool
 // }
 
 // func (e *Elevator) GetDirection() elevio.MotorDirection {

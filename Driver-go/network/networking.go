@@ -1,9 +1,9 @@
-package networking
+package network
 
 import (
-	"Network-go/network/bcast"
-	"Network-go/network/localip"
-	"Network-go/network/peers"
+	"Driver-go/network/bcast"
+	"Driver-go/network/localip"
+	"Driver-go/network/peers"
 	"flag"
 	"fmt"
 	"os"
@@ -42,7 +42,7 @@ func StringToNetworkMsg(msg string) NetworkMessage {
 var orderPanel [4][3]int
 var prioriyOrders [3]int
 
-func main() {
+func PederSinMain() {
 	// Our id can be anything. Here we pass it on the command line, using
 	//  `go run main.go -id=our_id`
 	var id string
