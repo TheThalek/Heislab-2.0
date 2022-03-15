@@ -3,7 +3,6 @@ package slaveFSM
 import (
 	"Driver-go/elevator"
 	"Driver-go/elevio"
-	"Driver-go/orders"
 )
 
 //Struct
@@ -43,9 +42,9 @@ func (e *Elevator) SetObstruction(obs bool) {
 
 
 
-func slaveFSM(elevio.ButtonEvent) {
+func slaveFSM(/* elevio.ButtonEvent,  */) {
 	//INIT:
-	numFloors := 4
+	const numFloors int = 4
 
 	//Make the elevator-object/struct
 	var myElevator elevator.Elevator
@@ -58,7 +57,7 @@ func slaveFSM(elevio.ButtonEvent) {
 	//Send buttons pressed on local order panel
 
 	//Get updated order-panel
-	var orderPanel [orders.ConstNumFloors][3]int
+	var localPanel [numFloors][3]int
 
 	elevio.SetMotorDirection(elevio.MD_Down)
 
@@ -73,7 +72,6 @@ func slaveFSM(elevio.ButtonEvent) {
 	//direction, obstruksjon, 
 
 
-
 	//Turns on all lights, but have to do this from the order matrix -> change this one. 
 	for f := 0; f < numFloors; f++ {
 		for b := 0; b < 3; b++ {
@@ -85,9 +83,27 @@ func slaveFSM(elevio.ButtonEvent) {
 
 }
 
+func (e *Elevator) DriveTo(priOrder elevio.ButtonEvent) {
+	var elevDir elevio.MotorDirection
+	var motorDir elevio.MotorDirection
 
-func main() {
-	
+	if e.GetCurrentFloor() < priOrder.floor {
+		motorDir = elevio.MD_up
+		elevdir = motorDi
+	} else if e.GetCurrentFloor() > priOrder.Floor {
+		motorDir = elevio.MD_Down
+		elevDir = motorDir
+	} else {
+		motorDir = elevio.MD_Stop
+		if priOrder.Button == elevio.BT_HallUp {
+			elevDir = elevio.MD_Up
+		} else if priOrder.Button == elevio.BT_HallDown {
+			elevDir = elevio.MD_Down
+		}
+	}
+
+	e.SetDirection(elevDir)
+	elevio.SetMotorDirection(motorDir)
 }
 
 

@@ -9,6 +9,6 @@ import(
 
 
 func main() {
-	slaveFSM.ThaleSinMain()
+	slaveFSM.slaveFSM()
 }
 
