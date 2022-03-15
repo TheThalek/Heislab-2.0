@@ -36,7 +36,7 @@ func slaveFSM(elevio.ButtonEvent) {
 	var priorityOrder elevio.ButtonEvent
 	priorityOrder.Floor = -1
 
-	//Turns on all lights, but have to do this from the order matrix -> change this one. 
+	//Turns on all lights, but have to do this from the order matrix -> change this one. Maybe make a function for this 
 	for f := 0; f < numFloors; f++ {
 		for b := 0; b < 3; b++ {
 			elevio.SetButtonLamp(elevio.ButtonType(b), f, false)
@@ -44,11 +44,10 @@ func slaveFSM(elevio.ButtonEvent) {
 	}
 
 	//Channel where you get/update priorder, when you get it
-
 }
 
 
-func main() {
+func thaleSinMain() {
 	
 }
 

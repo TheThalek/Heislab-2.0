@@ -1,12 +1,12 @@
 package main
 
 import (
-	"elevator"
-	"elevio"
+	"Driver-go/elevator"
+	"Driver-go/elevio"
 	"Driver-go/MS_FSM"
-	"networking"
-	"orders"
-	"singleFSM"
+	"Driver-go/networking"
+	"Driver-go/orders"
+	"Driver-go/singleFSM"
 )
 
 func main {
