@@ -1,6 +1,7 @@
 package network
 
 import (
+	"Driver-go/elevator"
 	"Driver-go/elevio"
 	"Driver-go/network/bcast"
 	"Driver-go/network/localip"
@@ -34,33 +35,48 @@ type NetworkMessage struct {
 	MessageString string
 }
 type MasterInformation struct {
-	OrderPanel [][]int
-	Priorities []RemoteOrder
+	OrderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_BUTTONS]int
+	Priorities [elevator.NUMBER_OF_ELEVATORS]RemoteOrder
 }
 type SlaveInformation struct {
+	direction       elevio.MotorDirection
+	currentFloor    int
+	NewOrders       []elevio.ButtonEvent
 	CompletedOrders []elevio.ButtonEvent
 }
 
-func NewNetworkMessage(origin MessageOrigin, id string, content string) NetworkMessage {
+func newNetworkMessage(origin MessageOrigin, id string, content string) NetworkMessage {
 	return NetworkMessage{Origin: origin, ID: id, Content: content, MessageString: string(origin) + DELIM + id + DELIM + content}
 }
+func NewMasterMessage(id string, info MasterInformation) NetworkMessage {
+	infoString := fmt.Sprint(info.OrderPanel) + DELIM + fmt.Sprint(info.Priorities)
+	return newNetworkMessage(Master, id, infoString)
+}
+func NewSlaveMessage(id string, info SlaveInformation) NetworkMessage {
+	return newNetworkMessage(Slave, id, fmt.Sprint(info))
+}
+
 func StringToNetworkMsg(msg string) NetworkMessage {
 	var netmsg NetworkMessage
 	msgSplit := strings.Split(msg, DELIM)
 
-	netmsg = NewNetworkMessage(MessageOrigin(msgSplit[0]), msgSplit[1], strings.Join(msgSplit[2:], DELIM))
+	netmsg = newNetworkMessage(MessageOrigin(msgSplit[0]), msgSplit[1], strings.Join(msgSplit[2:], DELIM))
+
 
 	return netmsg
 }
 
-func ExtractMasterInformation(masterMsg NetworkMessage, numFloors int, numButtons int, numElevs int) {
-	strArr := stringToIntArray(masterMsg.Content, numFloors, numButtons)
-	orderString := fmt.Sprint(strArr)
-	//priString := msgSplit[1]
 
-	fmt.Println("Extract: ", orderString)
-	//orderPanel := [][]int(msgSplit[0])
+//for slave
+func ExtractMasterInformation(masterMsg NetworkMessage, numFloors int, numButtons int, numElevs int) MasterInformation {
+	//masterMsgSplit := strings.Split(masterMsg.Content, DELIM)
+	//o := stringToIntArray(masterMsgSplit[0], numFloors, numButtons)
+	orders := [4][3]int{}
+	pri := [3]RemoteOrder{}
+	return MasterInformation{OrderPanel: orders, Priorities: pri}
 }
+
+
 func ExtractSlaveInformation(slaveMsg NetworkMessage) {
 
 }
@@ -68,8 +84,9 @@ func ReportTimeOut() {
 
 }
 
-var orderPanel [4][3]int
-var prioriyOrders [3]int
+var orderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_BUTTONS]int
+var prioriyOrders [elevator.NUMBER_OF_ELEVATORS]RemoteOrder
+
 
 func PederSinMain() {
 	// Our id can be anything. Here we pass it on the command line, using
@@ -109,11 +126,8 @@ func PederSinMain() {
 	go bcast.Receiver(16569, msgRx)
 
 	go func() {
-		netMsg := NewNetworkMessage(
-			Master,
-			id,
-			fmt.Sprint(orderPanel)+DELIM+
-				fmt.Sprint(prioriyOrders))
+		netMsg := NewMasterMessage(id, MasterInformation{OrderPanel: orderPanel, Priorities: prioriyOrders})
+
 		for {
 			msgTx <- netMsg
 			time.Sleep(1 * time.Second)
@@ -145,13 +159,14 @@ func stringToIntArray(S string, m int, n int) [][]int {
 	S = strings.ReplaceAll(S, "[", "")
 	S = strings.ReplaceAll(S, "]", "")
 	numList := strings.Split(S, " ")
-	for i := range numList {
-		j := i / m
-		k := (i - i/m) % n
-		el, _ := strconv.Atoi(numList[i])
-		if i == 4 {
 
-			el = 1
+	numList[4] = "1"
+	k := 0
+	for i := 0; i < m; i++ {
+		for j := 0; j < n; j++ {
+			A[i][j], _ = strconv.Atoi(numList[k])
+			k++
+
 		}
 		fmt.Println(j, k)
 		A[i][j] = el
