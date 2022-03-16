@@ -1,17 +1,24 @@
 package network
 
 import (
+	"Driver-go/elevio"
 	"Driver-go/network/bcast"
 	"Driver-go/network/localip"
 	"Driver-go/network/peers"
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
-const DELIM = "; "
+const DELIM = "//"
+
+type RemoteOrder struct {
+	ID    string
+	order elevio.ButtonEvent
+}
 
 type MessageOrigin string
 
@@ -26,6 +33,13 @@ type NetworkMessage struct {
 	Content       string
 	MessageString string
 }
+type MasterInformation struct {
+	OrderPanel [][]int
+	Priorities []RemoteOrder
+}
+type SlaveInformation struct {
+	CompletedOrders []elevio.ButtonEvent
+}
 
 func NewNetworkMessage(origin MessageOrigin, id string, content string) NetworkMessage {
 	return NetworkMessage{Origin: origin, ID: id, Content: content, MessageString: string(origin) + DELIM + id + DELIM + content}
@@ -34,9 +48,24 @@ func StringToNetworkMsg(msg string) NetworkMessage {
 	var netmsg NetworkMessage
 	msgSplit := strings.Split(msg, DELIM)
 
-	netmsg = NewNetworkMessage(MessageOrigin(msgSplit[0]), msgSplit[1], strings.Join(msgSplit[2:len(msgSplit)-1], DELIM))
+	netmsg = NewNetworkMessage(MessageOrigin(msgSplit[0]), msgSplit[1], strings.Join(msgSplit[2:], DELIM))
 
 	return netmsg
+}
+
+func ExtractMasterInformation(masterMsg NetworkMessage, numFloors int, numButtons int, numElevs int) {
+	strArr := stringToIntArray(masterMsg.Content, numFloors, numButtons)
+	orderString := fmt.Sprint(strArr)
+	//priString := msgSplit[1]
+
+	fmt.Println("Extract: ", orderString)
+	//orderPanel := [][]int(msgSplit[0])
+}
+func ExtractSlaveInformation(slaveMsg NetworkMessage) {
+
+}
+func ReportTimeOut() {
+
 }
 
 var orderPanel [4][3]int
@@ -79,13 +108,12 @@ func PederSinMain() {
 	go bcast.Transmitter(16569, msgTx)
 	go bcast.Receiver(16569, msgRx)
 
-	// The example message. We just send one of these every second.
 	go func() {
 		netMsg := NewNetworkMessage(
 			Master,
 			id,
-			"Orders: "+fmt.Sprint(orderPanel)+DELIM+
-				"Priorities: "+fmt.Sprint(prioriyOrders))
+			fmt.Sprint(orderPanel)+DELIM+
+				fmt.Sprint(prioriyOrders))
 		for {
 			msgTx <- netMsg
 			time.Sleep(1 * time.Second)
@@ -102,8 +130,32 @@ func PederSinMain() {
 			fmt.Printf("  Lost:     %q\n", p.Lost)
 
 		case a := <-msgRx:
-			fmt.Printf("Received: %#v\n", a.MessageString)
-			StringToNetworkMsg(a.MessageString)
+			b := StringToNetworkMsg(a.MessageString)
+			ExtractMasterInformation(b, 4, 3, 1)
+			fmt.Printf("Received: %#v\n", b.Content)
 		}
 	}
+}
+
+func stringToIntArray(S string, m int, n int) [][]int {
+	A := make([][]int, m)
+	for i := range A {
+		A[i] = make([]int, n)
+	}
+	S = strings.ReplaceAll(S, "[", "")
+	S = strings.ReplaceAll(S, "]", "")
+	numList := strings.Split(S, " ")
+	for i := range numList {
+		j := i / m
+		k := (i - i/m) % n
+		el, _ := strconv.Atoi(numList[i])
+		if i == 4 {
+
+			el = 1
+		}
+		fmt.Println(j, k)
+		A[i][j] = el
+	}
+	fmt.Println("to array: ", fmt.Sprint(A))
+	return A
 }
