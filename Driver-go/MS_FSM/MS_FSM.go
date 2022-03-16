@@ -5,4 +5,6 @@ package MS_FSM
 // case slave
 
 // send reports
-// receive reports 
+// receive reports
+
+//FUNC DOSTUFF(CHAN)

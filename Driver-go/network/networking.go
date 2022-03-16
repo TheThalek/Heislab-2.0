@@ -1,23 +1,31 @@
 package network
 
 import (
+	"Driver-go/elevator"
+	"Driver-go/elevio"
 	"Driver-go/network/bcast"
 	"Driver-go/network/localip"
 	"Driver-go/network/peers"
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
 
-const DELIM = "; "
+const DELIM = "//"
+
+type RemoteOrder struct {
+	ID    string
+	order elevio.ButtonEvent
+}
 
 type MessageOrigin string
 
 const (
-	Master MessageOrigin = "MASTER"
-	Slave                = "SLAVE"
+	Master = "MASTER"
+	Slave  = "SLAVE"
 )
 
 type NetworkMessage struct {
@@ -26,21 +34,54 @@ type NetworkMessage struct {
 	Content       string
 	MessageString string
 }
+type MasterInformation struct {
+	OrderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_BUTTONS]int
+	Priorities [3]RemoteOrder
+}
+type SlaveInformation struct {
+	direction       elevio.MotorDirection
+	currentFloor    int
+	NewOrders       []elevio.ButtonEvent
+	CompletedOrders []elevio.ButtonEvent
+}
 
-func NewNetworkMessage(origin MessageOrigin, id string, content string) NetworkMessage {
+func newNetworkMessage(origin MessageOrigin, id string, content string) NetworkMessage {
 	return NetworkMessage{Origin: origin, ID: id, Content: content, MessageString: string(origin) + DELIM + id + DELIM + content}
 }
+func NewMasterMessage(id string, info MasterInformation) NetworkMessage {
+	return newNetworkMessage(Master, id, fmt.Sprint(info))
+}
+func NewSlaveMessage(id string, info SlaveInformation) NetworkMessage {
+	return newNetworkMessage(Slave, id, fmt.Sprint(info))
+}
+
 func StringToNetworkMsg(msg string) NetworkMessage {
 	var netmsg NetworkMessage
 	msgSplit := strings.Split(msg, DELIM)
 
-	netmsg = NewNetworkMessage(MessageOrigin(msgSplit[0]), msgSplit[1], strings.Join(msgSplit[2:len(msgSplit)-1], DELIM))
+	netmsg = newNetworkMessage(MessageOrigin(msgSplit[0]), msgSplit[1], strings.Join(msgSplit[2:], DELIM))
 
 	return netmsg
 }
 
+//for slave
+func ExtractMasterInformation(masterMsg NetworkMessage, numFloors int, numButtons int, numElevs int) MasterInformation {
+	//masterMsgSplit := strings.Split(masterMsg.Content, DELIM)
+	//o := stringToIntArray(masterMsgSplit[0], numFloors, numButtons)
+	orders := [4][3]int{}
+	pri := [3]RemoteOrder{}
+	return MasterInformation{OrderPanel: orders, Priorities: pri}
+}
+
+func ExtractSlaveInformation(slaveMsg NetworkMessage) {
+
+}
+func ReportTimeOut() {
+
+}
+
 var orderPanel [4][3]int
-var prioriyOrders [3]int
+var prioriyOrders [3]string
 
 func PederSinMain() {
 	// Our id can be anything. Here we pass it on the command line, using
@@ -79,13 +120,8 @@ func PederSinMain() {
 	go bcast.Transmitter(16569, msgTx)
 	go bcast.Receiver(16569, msgRx)
 
-	// The example message. We just send one of these every second.
 	go func() {
-		netMsg := NewNetworkMessage(
-			Master,
-			id,
-			"Orders: "+fmt.Sprint(orderPanel)+DELIM+
-				"Priorities: "+fmt.Sprint(prioriyOrders))
+		netMsg := NewMasterMessage(id, MasterInformation{OrderPanel: orderPanel, Priorities: prioriyOrders})
 		for {
 			msgTx <- netMsg
 			time.Sleep(1 * time.Second)
@@ -102,8 +138,29 @@ func PederSinMain() {
 			fmt.Printf("  Lost:     %q\n", p.Lost)
 
 		case a := <-msgRx:
-			fmt.Printf("Received: %#v\n", a.MessageString)
-			StringToNetworkMsg(a.MessageString)
+			b := StringToNetworkMsg(a.MessageString)
+			ExtractMasterInformation(b, 4, 3, 1)
+			fmt.Printf("Received: %#v\n", b.Content)
 		}
 	}
+}
+
+func stringToIntArray(S string, m int, n int) [][]int {
+	A := make([][]int, m)
+	for i := range A {
+		A[i] = make([]int, n)
+	}
+	S = strings.ReplaceAll(S, "[", "")
+	S = strings.ReplaceAll(S, "]", "")
+	numList := strings.Split(S, " ")
+	numList[4] = "1"
+	k := 0
+	for i := 0; i < m; i++ {
+		for j := 0; j < n; j++ {
+			A[i][j], _ = strconv.Atoi(numList[k])
+			k++
+		}
+	}
+	fmt.Println("to array: ", fmt.Sprint(A))
+	return A
 }
