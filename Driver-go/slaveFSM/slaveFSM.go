@@ -18,6 +18,7 @@ func slaveFSMinit(int numFloors) {
 	// var doorOpen bool = false
 	// var moving bool = true
 	// var obs bool = false
+	// Sett start state lik noko?? Evt. ha ein default i state-machinen i SlaveFSM
 
 	for f := 0; f < numFloors; f++ {
 		for b := 0; b < 3; b++ {
@@ -29,9 +30,9 @@ func slaveFSMinit(int numFloors) {
 func setLights(masterOrderPanel [ConstNumFloors][ConstNumElevators+2]int) {
 	for f := 0; f < numFloors; f ++{
 		for b := 0; b < 3; b++ {
-			if(b = 0 or b = 1){ //If up or down pushed
+			if ((b = 0)||(b = 1)) { //If up or down pushed
 				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][b]!=OT_NoOrder)) //Will set the lamp on/off if 0/1or2
-			} else if(b = 2){ //If cab 
+			} else if (b = 2) { //If cab 
 				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][getElevatorIndex() + 2])!=OT_NoOrder)) //GetElevatorIndex gives the nr. of column
 			}
 		}
@@ -42,15 +43,28 @@ func slaveFSM(localElevator *elevator.Elevator, masterOrderPanel [ConstNumFloors
 	
 	setLights(masterOrderPanel)
 
-	//Oppdater localElevator
-		//direction
-		//current floor
-		//obs
 	localElevator.SetObs(elevio.getObstruction()) //KANSKJE ENDRE SLIK AT DEN ER PEKER(?)
-	if( ) {
-		localElevator.SetCurrentFloor() //DET SAMME ^
+
+	if(elevio.getFloor() != -1) {
+		localElevator.SetCurrentFloor(elevio.getFloor()) //Det samme som for SetObs, peker elns? Notasjon??
 	}
 	
+	//update orders
+	for f := 0; f < numFloors; f++ {
+		for b := 0; b < numButtons; b++ {
+			
+		}
+	}
+
+	switch slaveState {
+	case wait:
+
+	case moving: 
+
+	case obstruction:
+	
+	}
+
 
 	//Drive to PriOrder (Frå localElevator) / STATEMACHINE
 
