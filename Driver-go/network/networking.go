@@ -36,7 +36,7 @@ type NetworkMessage struct {
 }
 type MasterInformation struct {
 	OrderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_BUTTONS]int
-	Priorities [3]RemoteOrder
+	Priorities [elevator.NUMBER_OF_ELEVATORS]RemoteOrder
 }
 type SlaveInformation struct {
 	direction       elevio.MotorDirection
@@ -80,8 +80,8 @@ func ReportTimeOut() {
 
 }
 
-var orderPanel [4][3]int
-var prioriyOrders [3]string
+var orderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_BUTTONS]int
+var prioriyOrders [elevator.NUMBER_OF_ELEVATORS]RemoteOrder
 
 func PederSinMain() {
 	// Our id can be anything. Here we pass it on the command line, using
