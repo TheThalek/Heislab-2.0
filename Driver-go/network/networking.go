@@ -62,8 +62,10 @@ func StringToNetworkMsg(msg string) NetworkMessage {
 
 	netmsg = newNetworkMessage(MessageOrigin(msgSplit[0]), msgSplit[1], strings.Join(msgSplit[2:], DELIM))
 
+
 	return netmsg
 }
+
 
 //for slave
 func ExtractMasterInformation(masterMsg NetworkMessage, numFloors int, numButtons int, numElevs int) MasterInformation {
@@ -74,6 +76,7 @@ func ExtractMasterInformation(masterMsg NetworkMessage, numFloors int, numButton
 	return MasterInformation{OrderPanel: orders, Priorities: pri}
 }
 
+
 func ExtractSlaveInformation(slaveMsg NetworkMessage) {
 
 }
@@ -83,6 +86,7 @@ func ReportTimeOut() {
 
 var orderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_BUTTONS]int
 var prioriyOrders [elevator.NUMBER_OF_ELEVATORS]RemoteOrder
+
 
 func PederSinMain() {
 	// Our id can be anything. Here we pass it on the command line, using
@@ -123,6 +127,7 @@ func PederSinMain() {
 
 	go func() {
 		netMsg := NewMasterMessage(id, MasterInformation{OrderPanel: orderPanel, Priorities: prioriyOrders})
+
 		for {
 			msgTx <- netMsg
 			time.Sleep(1 * time.Second)
@@ -154,13 +159,17 @@ func stringToIntArray(S string, m int, n int) [][]int {
 	S = strings.ReplaceAll(S, "[", "")
 	S = strings.ReplaceAll(S, "]", "")
 	numList := strings.Split(S, " ")
+
 	numList[4] = "1"
 	k := 0
 	for i := 0; i < m; i++ {
 		for j := 0; j < n; j++ {
 			A[i][j], _ = strconv.Atoi(numList[k])
 			k++
+
 		}
+		fmt.Println(j, k)
+		A[i][j] = el
 	}
 	fmt.Println("to array: ", fmt.Sprint(A))
 	return A
