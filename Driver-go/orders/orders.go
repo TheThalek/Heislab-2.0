@@ -25,24 +25,6 @@ const (
 )
 
 
-//ToDo: Calculate cost for each individual elevator
-//Orderpanel[] (constNumFloors-1) x (2 + constNumElevators -1)
-
-func UpdateMasterOrderPanel (){
-	//Todo get orders from the slave elevators and update the matrix
-
-}
-
-
-func GetOrder(orderPanel *[ConstNumFloors][3]int, floor int, button int) int {
-	return orderPanel[floor][button]
-}
-
-func SetOrder(orderPanel *[ConstNumFloors][3]int, floor int, button int, orderType int) {
-	lampValue := (orderType != OT_NoOrder)
-	orderPanel[floor][button] = orderType
-	elevio.SetButtonLamp(elevio.ButtonType(button), floor, lampValue)
-}
 
 func calculateOrderCost(order elevio.ButtonEvent, elevator elevator.Elevator) int {
 	// Based on costed scenarios: on the order floor,above or below floor, type of requirede turns - calculate the cost of the given order
@@ -134,6 +116,7 @@ func PrioritizeOrders(MasterOrderPanel * [ConstNumFloors][ConstNumButtons]int, a
 
 	}
 	//and return list of priority orders -->available elevators
+	return availableElevators
 
 }
 
