@@ -24,8 +24,8 @@ type RemoteOrder struct {
 type MessageOrigin string
 
 const (
-	Master = "MASTER"
-	Slave  = "SLAVE"
+	Master MessageOrigin = "MASTER"
+	Slave                = "SLAVE"
 )
 
 type NetworkMessage struct {
