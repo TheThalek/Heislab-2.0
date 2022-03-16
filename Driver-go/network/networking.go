@@ -49,7 +49,8 @@ func newNetworkMessage(origin MessageOrigin, id string, content string) NetworkM
 	return NetworkMessage{Origin: origin, ID: id, Content: content, MessageString: string(origin) + DELIM + id + DELIM + content}
 }
 func NewMasterMessage(id string, info MasterInformation) NetworkMessage {
-	return newNetworkMessage(Master, id, fmt.Sprint(info))
+	infoString := fmt.Sprint(info.OrderPanel) + DELIM + fmt.Sprint(info.Priorities)
+	return newNetworkMessage(Master, id, infoString)
 }
 func NewSlaveMessage(id string, info SlaveInformation) NetworkMessage {
 	return newNetworkMessage(Slave, id, fmt.Sprint(info))
