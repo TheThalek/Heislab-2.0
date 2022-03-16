@@ -10,7 +10,7 @@ type Elevator struct {
 	currentFloor int
 	obs 		 bool
 	priOrder	 elevio.ButtonEvent
-	id			 string
+	id			 string //has to be different, and 0, 1, 2 and so on
 }
 
 func (e *Elevator) GetDirection() elevio.MotorDirection {

@@ -29,12 +29,13 @@ func slaveFSMinit(int numFloors) {
 
 func slaveFSM(localElevator *elevator.Elevator, masterOrderPanel [ConstNumFloors][ConstNumElevators+2]int) {
 	//Oppdater lysene ut ifrå masterOrderPanel-kopien (Både skru av(0) og på(1/2))
-	var localOrderPanel [orders.ConstNumFloors][3]int = masterOrderPanel[]
-
-	for f := 0; f < 3; f ++{
+	for f := 0; f <= 2; f ++{
 		for b := 0; b < 3; b++ {
-			if f = 0{
+			if(f = 0 or f = 1){ //If up or down pushed
 				
+			}
+			if(f = 3){ //If cab 
+
 			}
 		}
 	}
