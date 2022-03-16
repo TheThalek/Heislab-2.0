@@ -5,7 +5,7 @@ import (
 	"Driver-go/elevio"
 )
 
-func slaveFSMinit() {
+func slaveFSMinit(int numFloors) {
 	//KVA MÅ STOR FSM HA: 
 		//LAGE ELEVATOR OBJEKTET!!! Med ID og sånt
 		//
@@ -15,9 +15,9 @@ func slaveFSMinit() {
 
 	elevio.SetMotorDirection(elevio.MD_Down)
 
-	var doorOpen bool = false
-	var moving bool = true
-	var obs bool = false
+	// var doorOpen bool = false
+	// var moving bool = true
+	// var obs bool = false
 
 	for f := 0; f < numFloors; f++ {
 		for b := 0; b < 3; b++ {
@@ -27,40 +27,35 @@ func slaveFSMinit() {
 }
 
 
+func slaveFSM(localElevator *elevator.Elevator, masterOrderPanel [ConstNumFloors][ConstNumElevators+2]int) {
+	//Oppdater lysene ut ifrå masterOrderPanel-kopien (Både skru av(0) og på(1/2))
+	var localOrderPanel [orders.ConstNumFloors][3]int = masterOrderPanel[]
 
-func slaveFSM(id string, priOrderChan , orderMatrixChan) {
-
-	//Channel where you get/update priorder, when you get it
-
-	//channel 
-	//go send update elns. som sender ut elevator struct heile tida
-
-	//channel for nye ordre
-	//go send nye ordre
-		//Struct SlaveInformation
-		//NewOrdres []elevio.ButtonEvent
-		//CompletedOrders elevio.ButtonEvent
-
-
-	drv_buttons := make(chan elevio.ButtonEvent) //For å hente nye knappetrykk
-	drv_floors := make(chan int) //For å hente current floor
-	drv_obs := make(chan bool) //for å hente obstruction
-
-	//go ---.PollButtons(drv_buttons) 
-	//go ---.PollFloorSensor(drv_floors)
-	//go ---.PollObs(drv_obs)
-
-	for {
-		select {
-		//Hente chn frå anna fil
-		case priOrder := <-priOrderChan:
-			//What to do if new pri order
-			//Drive_to_() elns?
-		//Hente chn frå anna fil
-		case newOrderMatrix := <-orderMatrixChan:
-			//oppdatere lys
+	for f := 0; f < 3; f ++{
+		for b := 0; b < 3; b++ {
+			if f = 0{
+				
+			}
 		}
 	}
+
+
+
+	for f := 0; f < numFloors; f++ {
+		for b := 0; b < 3; b++ {
+			elevio.SetButtonLamp(elevio.ButtonType(b), f, false)
+		}
+	}
+
+
+
+	//Oppdater localElevator
+		//direction
+		//current floor
+		//obs
+	//Drive to PriOrder (Frå localElevator)
+	//
+
 }
 
 
