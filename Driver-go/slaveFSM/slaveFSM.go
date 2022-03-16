@@ -5,25 +5,13 @@ import (
 	"Driver-go/elevio"
 )
 
-
-
-func slaveFSM(id string) {
-	//INIT:
-	const numFloors int = 4
-
-	//Make the elevator-object/struct
-	var myElevator elevator.Elevator
-	myElevator.SetID(id)
+func slaveFSMinit() {
+	//KVA MÅ STOR FSM HA: 
+		//LAGE ELEVATOR OBJEKTET!!! Med ID og sånt
+		//
 
 	//Make connection with local elevator, to make it run
 	elevio.Init("localhost:15657", numFloors)
-
-	//Get buttons pressed on local order panel
-
-	//Send buttons pressed on local order panel
-
-	//Get updated order-panel
-	var localPanel [numFloors][3]int
 
 	elevio.SetMotorDirection(elevio.MD_Down)
 
@@ -36,7 +24,11 @@ func slaveFSM(id string) {
 			elevio.SetButtonLamp(elevio.ButtonType(b), f, false)
 		}
 	}
+}
 
+
+
+func slaveFSM(id string, priOrderChan , orderMatrixChan) {
 
 	//Channel where you get/update priorder, when you get it
 
@@ -50,6 +42,14 @@ func slaveFSM(id string) {
 		//CompletedOrders elevio.ButtonEvent
 
 
+	drv_buttons := make(chan elevio.ButtonEvent) //For å hente nye knappetrykk
+	drv_floors := make(chan int) //For å hente current floor
+	drv_obs := make(chan bool) //for å hente obstruction
+
+	//go ---.PollButtons(drv_buttons) 
+	//go ---.PollFloorSensor(drv_floors)
+	//go ---.PollObs(drv_obs)
+
 	for {
 		select {
 		//Hente chn frå anna fil
@@ -57,10 +57,9 @@ func slaveFSM(id string) {
 			//What to do if new pri order
 			//Drive_to_() elns?
 		//Hente chn frå anna fil
-		case newOrderMatrix := <-OrderMatrixChan:
+		case newOrderMatrix := <-orderMatrixChan:
 			//oppdatere lys
 		}
-
 	}
 }
 
