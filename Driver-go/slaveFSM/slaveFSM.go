@@ -26,36 +26,33 @@ func slaveFSMinit(int numFloors) {
 	}
 }
 
+func setLights(masterOrderPanel [ConstNumFloors][ConstNumElevators+2]int) {
+	for f := 0; f < numFloors; f ++{
+		for b := 0; b < 3; b++ {
+			if(b = 0 or b = 1){ //If up or down pushed
+				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][b]!=OT_NoOrder)) //Will set the lamp on/off if 0/1or2
+			} else if(b = 2){ //If cab 
+				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][getElevatorIndex() + 2])!=OT_NoOrder)) //GetElevatorIndex gives the nr. of column
+			}
+		}
+	}
+}
 
 func slaveFSM(localElevator *elevator.Elevator, masterOrderPanel [ConstNumFloors][ConstNumElevators+2]int) {
-	//Oppdater lysene ut ifrå masterOrderPanel-kopien (Både skru av(0) og på(1/2))
-	for f := 0; f <= 2; f ++{
-		for b := 0; b < 3; b++ {
-			if(f = 0 or f = 1){ //If up or down pushed
-				
-			}
-			if(f = 3){ //If cab 
-
-			}
-		}
-	}
-
-
-
-	for f := 0; f < numFloors; f++ {
-		for b := 0; b < 3; b++ {
-			elevio.SetButtonLamp(elevio.ButtonType(b), f, false)
-		}
-	}
-
-
+	
+	setLights(masterOrderPanel)
 
 	//Oppdater localElevator
 		//direction
 		//current floor
 		//obs
-	//Drive to PriOrder (Frå localElevator)
-	//
+	localElevator.SetObs(elevio.getObstruction()) //KANSKJE ENDRE SLIK AT DEN ER PEKER(?)
+	if( ) {
+		localElevator.SetCurrentFloor() //DET SAMME ^
+	}
+	
+
+	//Drive to PriOrder (Frå localElevator) / STATEMACHINE
 
 }
 
@@ -63,6 +60,8 @@ func slaveFSM(localElevator *elevator.Elevator, masterOrderPanel [ConstNumFloors
 
 
 
+
+//ENDRE DENNE!
 func (e *Elevator) DriveTo(priOrder elevio.ButtonEvent) {
 	var elevDir elevio.MotorDirection
 	var motorDir elevio.MotorDirection
