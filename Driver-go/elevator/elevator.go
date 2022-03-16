@@ -19,11 +19,14 @@ func (e *Elevator) GetDirection() elevio.MotorDirection {
 func (e *Elevator) GetCurrentFloor() int {
 	return e.currentFloor
 }
-func (e *Elevator) GetPriFloor() elevio.ButtonEvent {
-	return e.priFloor
+func (e *Elevator) GetPriOrder() elevio.ButtonEvent {
+	return e.priOrder
 }
-func (e *Elevator) GetObstruction() bool {
-	return e.obstruction
+func (e *Elevator) GetObs() bool {
+	return e.obs
+}
+func (e *Elevator) GetID() string {
+	return e.id
 }
 func (e *Elevator) SetFloor(floor int) {
 	e.currentFloor = floor
@@ -31,11 +34,14 @@ func (e *Elevator) SetFloor(floor int) {
 func (e *Elevator) SetDirection(dir elevio.MotorDirection) {
 	e.direction = dir
 }
-func (e *Elevator) SetPriFloor(priFloor elevio.ButtonEvent) {
-	e.priFloor = priFloor
+func (e *Elevator) SetPriOrder(priOrder elevio.ButtonEvent) {
+	e.priOrder = priOrder
 }
-func (e *Elevator) SetObstruction(obs bool) {
-	e.obstruction = obs
+func (e *Elevator) SetObs(obs bool) {
+	e.obs = obs
+}
+func (e *Elevator) SetID(ID string) {
+	e.id = ID
 }
 
 
