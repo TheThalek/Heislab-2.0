@@ -34,17 +34,17 @@ func slaveFSMinit(int numFloors) {
 	}
 }
 
-func setLights(masterOrderPanel [ConstNumFloors][ConstNumElevators+2]int) {
-	for f := 0; f < numFloors; f ++{
-		for b := 0; b < 3; b++ {
-			if ((b = 0)||(b = 1)) { //If up or down pushed
-				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][b]!=OT_NoOrder)) //Will set the lamp on/off if 0/1or2
-			} else if (b = 2) { //If cab 
-				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][getElevatorIndex() + 2])!=OT_NoOrder)) //GetElevatorIndex gives the nr. of column
-			}
-		}
-	}
-}
+// func setLights(masterOrderPanel [ConstNumFloors][ConstNumElevators+2]int) {
+// 	for f := 0; f < numFloors; f ++{
+// 		for b := 0; b < 3; b++ {
+// 			if ((b = 0)||(b = 1)) { //If up or down pushed
+// 				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][b]!=OT_NoOrder)) //Will set the lamp on/off if 0/1or2
+// 			} else if (b = 2) { //If cab 
+// 				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][getElevatorIndex() + 2])!=OT_NoOrder)) //GetElevatorIndex gives the nr. of column
+// 			}
+// 		}
+// 	}
+// }
 
 func slaveFSM(localElevator *elevator.Elevator, masterOrderPanel [ConstNumFloors][ConstNumElevators+2]int) {
 	
@@ -111,5 +111,11 @@ func (e *Elevator) DriveTo(priOrder elevio.ButtonEvent) {
 }
 
 
+
+
+func thaleSinMain() {
+	int numFloors = 4
+	slaveFSMinit(int numFloors)
+}
 
 
