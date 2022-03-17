@@ -5,50 +5,109 @@ import (
 	"Driver-go/elevio"
 )
 
-var numFloors := 4 //To do; Kanskje gjør denne "global", då den blir brukt av alle?
+const (
+	Idle 		SlaveState = 0
+	Move      		   = 1
+	Obstruction            = 2
+)
 
 
-func init() {
-	var myElevator elevator.Elevator
+func slaveFSMinit(int numFloors) {
+	//KVA MÅ STOR FSM HA: 
+		//LAGE ELEVATOR OBJEKTET!!! Med ID og sånt
+		//
 
-	var orderPanel [orders.ConstNumFloors][3]int
-
+	//Make connection with local elevator, to make it run
 	elevio.Init("localhost:15657", numFloors)
 
-	elevFSM.RunElevFSM(numFloors, myElevator, orderPanel)
-	
 	elevio.SetMotorDirection(elevio.MD_Down)
 
-	var doorOpen bool = false
-	var moving bool = true
-	var obs bool = false
-}
+	// var doorOpen bool = false
+	// var moving bool = true
+	// var obs bool = false
+	// Sett start state lik noko?? Evt. ha ein default i state-machinen i SlaveFSM
 
-//Tar inn ein Elevator-struct, som 
-func slaveFSM(elevio.ButtonEvent) {
-	//Ta inn: priOrder
-	//Sende ut: på en kanal(?) posisjon, 
-	//om den har tatt en ordre/er ferdig, 
-	//direction, obstruksjon, 
-
-	init()
-
-	var priorityOrder elevio.ButtonEvent
-	priorityOrder.Floor = -1
-
-	//Turns on all lights, but have to do this from the order matrix -> change this one. Maybe make a function for this 
 	for f := 0; f < numFloors; f++ {
 		for b := 0; b < 3; b++ {
 			elevio.SetButtonLamp(elevio.ButtonType(b), f, false)
 		}
 	}
+}
 
-	//Channel where you get/update priorder, when you get it
+func setLights(masterOrderPanel [ConstNumFloors][ConstNumElevators+2]int) {
+	for f := 0; f < numFloors; f ++{
+		for b := 0; b < 3; b++ {
+			if ((b = 0)||(b = 1)) { //If up or down pushed
+				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][b]!=OT_NoOrder)) //Will set the lamp on/off if 0/1or2
+			} else if (b = 2) { //If cab 
+				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][getElevatorIndex() + 2])!=OT_NoOrder)) //GetElevatorIndex gives the nr. of column
+			}
+		}
+	}
+}
+
+func slaveFSM(localElevator *elevator.Elevator, masterOrderPanel [ConstNumFloors][ConstNumElevators+2]int) {
+	
+	setLights(masterOrderPanel)
+
+	localElevator.SetObs(elevio.getObstruction()) //KANSKJE ENDRE SLIK AT DEN ER PEKER(?)
+
+	if(elevio.getFloor() != -1) {
+		localElevator.SetCurrentFloor(elevio.getFloor()) //Det samme som for SetObs, peker elns? Notasjon??
+	}
+	
+	//update orders
+	for f := 0; f < numFloors; f++ {
+		for b := 0; b < numButtons; b++ {
+			//If not already in matrix, 
+			//New orders, in a list of button events?
+		}
+	}
+
+	switch SlaveState {
+	case Idle:
+		if (priOrder != OT_NoOrder) {
+			slaveState := Move
+		}
+	case Move: 
+
+	case Obstruction:
+		
+	default: 
+		slaveState := Idle
+	}
+
+
+	//Drive to PriOrder (Frå localElevator) / STATEMACHINE
 }
 
 
-func thaleSinMain() {
-	
+
+
+
+
+//ENDRE DENNE!
+func (e *Elevator) DriveTo(priOrder elevio.ButtonEvent) {
+	var elevDir elevio.MotorDirection
+	var motorDir elevio.MotorDirection
+
+	if e.GetCurrentFloor() < priOrder.floor {
+		motorDir = elevio.MD_up
+		elevdir = motorDi
+	} else if e.GetCurrentFloor() > priOrder.Floor {
+		motorDir = elevio.MD_Down
+		elevDir = motorDir
+	} else {
+		motorDir = elevio.MD_Stop
+		if priOrder.Button == elevio.BT_HallUp {
+			elevDir = elevio.MD_Up
+		} else if priOrder.Button == elevio.BT_HallDown {
+			elevDir = elevio.MD_Down
+		}
+	}
+
+	e.SetDirection(elevDir)
+	elevio.SetMotorDirection(motorDir)
 }
 
 
