@@ -5,6 +5,13 @@ import (
 	"Driver-go/elevio"
 )
 
+const (
+	Idle 		SlaveState = 0
+	Move      		   = 1
+	Obstruction            = 2
+)
+
+
 func slaveFSMinit(int numFloors) {
 	//KVA MÅ STOR FSM HA: 
 		//LAGE ELEVATOR OBJEKTET!!! Med ID og sånt
@@ -52,22 +59,26 @@ func slaveFSM(localElevator *elevator.Elevator, masterOrderPanel [ConstNumFloors
 	//update orders
 	for f := 0; f < numFloors; f++ {
 		for b := 0; b < numButtons; b++ {
-			
+			//If not already in matrix, 
+			//New orders, in a list of button events?
 		}
 	}
 
-	switch slaveState {
-	case wait:
+	switch SlaveState {
+	case Idle:
+		if (priOrder != OT_NoOrder) {
+			slaveState := Move
+		}
+	case Move: 
 
-	case moving: 
-
-	case obstruction:
-	
+	case Obstruction:
+		
+	default: 
+		slaveState := Idle
 	}
 
 
 	//Drive to PriOrder (Frå localElevator) / STATEMACHINE
-
 }
 
 
