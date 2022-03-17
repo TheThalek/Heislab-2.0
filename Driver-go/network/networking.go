@@ -41,10 +41,14 @@ type MasterInformation struct {
 type SlaveInformation struct {
 	direction       elevio.MotorDirection
 	currentFloor    int
+	obs             bool
 	NewOrders       []elevio.ButtonEvent
 	CompletedOrders []elevio.ButtonEvent
 }
 
+func newRemoteOrder(id string, order elevio.ButtonEvent) RemoteOrder {
+	return RemoteOrder{ID: id, order: order}
+}
 func newNetworkMessage(origin MessageOrigin, id string, content string) NetworkMessage {
 	return NetworkMessage{Origin: origin, ID: id, Content: content, MessageString: string(origin) + DELIM + id + DELIM + content}
 }
@@ -53,7 +57,7 @@ func NewMasterMessage(id string, info MasterInformation) NetworkMessage {
 	return newNetworkMessage(Master, id, infoString)
 }
 func NewSlaveMessage(id string, info SlaveInformation) NetworkMessage {
-	return newNetworkMessage(Slave, id, fmt.Sprint(info))
+	return newNetworkMessage(Slave, id, strconv.Itoa(info.currentFloor)+DELIM+fmt.Sprint(info.direction)+DELIM+strconv.FormatBool(info.obs)+DELIM+fmt.Sprint(info.CompletedOrders)+DELIM+fmt.Sprint(info.NewOrders))
 }
 
 func StringToNetworkMsg(msg string) NetworkMessage {
@@ -62,31 +66,56 @@ func StringToNetworkMsg(msg string) NetworkMessage {
 
 	netmsg = newNetworkMessage(MessageOrigin(msgSplit[0]), msgSplit[1], strings.Join(msgSplit[2:], DELIM))
 
-
 	return netmsg
 }
 
-
 //for slave
 func ExtractMasterInformation(masterMsg NetworkMessage, numFloors int, numButtons int, numElevs int) MasterInformation {
-	//masterMsgSplit := strings.Split(masterMsg.Content, DELIM)
-	//o := stringToIntArray(masterMsgSplit[0], numFloors, numButtons)
-	orders := [4][3]int{}
-	pri := [3]RemoteOrder{}
+	mSplit := strings.Split(masterMsg.Content, DELIM)
+	o := stringToIntArray(mSplit[0], numFloors, numButtons)
+	var orders [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_BUTTONS]int
+	for i := 0; i < len(o); i++ {
+		for j := 0; j < len(o[0]); j++ {
+			orders[i][j] = o[i][j]
+		}
+	}
+	mSplit[1] = strings.Trim(mSplit[1], "[]")
+	mSplit[1] = strings.ReplaceAll(mSplit[1], "{", "")
+	mSplit[1] = strings.ReplaceAll(mSplit[1], "}", "")
+	priStrArray := strings.Split(mSplit[1], " ")
+	var pri [elevator.NUMBER_OF_ELEVATORS]RemoteOrder
+	for i := 0; i < len(priStrArray); i = i + 3 {
+		id := priStrArray[i]
+		fl, _ := strconv.Atoi(priStrArray[i+1])
+		btn, _ := strconv.Atoi(priStrArray[i+2])
+		pri[i/3] = RemoteOrder{ID: id, order: elevio.ButtonEvent{Floor: fl, Button: elevio.ButtonType(btn)}}
+	}
 	return MasterInformation{OrderPanel: orders, Priorities: pri}
 }
 
+func ExtractSlaveInformation(slaveMsg NetworkMessage) SlaveInformation {
+	mSplit := strings.Split(slaveMsg.Content, DELIM)
+	fmt.Println(mSplit)
+	fl, _ := strconv.Atoi(mSplit[0])
+	dirInt, _ := strconv.Atoi(mSplit[1])
+	dir := elevio.MotorDirection(dirInt)
+	ob, _ := strconv.ParseBool(mSplit[2])
+	nOrds := []elevio.ButtonEvent{}
+	cOrds := []elevio.ButtonEvent{}
 
-func ExtractSlaveInformation(slaveMsg NetworkMessage) {
-
+	return SlaveInformation{currentFloor: fl, direction: dir, obs: ob, NewOrders: nOrds, CompletedOrders: cOrds}
 }
 func ReportTimeOut() {
 
 }
 
 var orderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_BUTTONS]int
-var prioriyOrders [elevator.NUMBER_OF_ELEVATORS]RemoteOrder
-
+var priorityOrders [elevator.NUMBER_OF_ELEVATORS]RemoteOrder = [elevator.NUMBER_OF_ELEVATORS]RemoteOrder{newRemoteOrder("peer--1", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp}), newRemoteOrder("2", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp}), newRemoteOrder("3", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp})}
+var nOrders []elevio.ButtonEvent = []elevio.ButtonEvent{
+	{Floor: 3, Button: elevio.BT_Cab},
+	{Floor: 1, Button: elevio.BT_HallDown},
+}
+var cOrders []elevio.ButtonEvent = nOrders
 
 func PederSinMain() {
 	// Our id can be anything. Here we pass it on the command line, using
@@ -126,8 +155,7 @@ func PederSinMain() {
 	go bcast.Receiver(16569, msgRx)
 
 	go func() {
-		netMsg := NewMasterMessage(id, MasterInformation{OrderPanel: orderPanel, Priorities: prioriyOrders})
-
+		netMsg := NewSlaveMessage(id, SlaveInformation{currentFloor: 2, direction: elevio.MD_Up, obs: false, NewOrders: nOrders, CompletedOrders: cOrders})
 		for {
 			msgTx <- netMsg
 			time.Sleep(1 * time.Second)
@@ -145,8 +173,8 @@ func PederSinMain() {
 
 		case a := <-msgRx:
 			b := StringToNetworkMsg(a.MessageString)
-			ExtractMasterInformation(b, 4, 3, 1)
-			fmt.Printf("Received: %#v\n", b.Content)
+			info := ExtractSlaveInformation(b)
+			fmt.Printf("Received: %#v\n", info)
 		}
 	}
 }
@@ -166,10 +194,7 @@ func stringToIntArray(S string, m int, n int) [][]int {
 		for j := 0; j < n; j++ {
 			A[i][j], _ = strconv.Atoi(numList[k])
 			k++
-
 		}
-		fmt.Println(j, k)
-		A[i][j] = el
 	}
 	fmt.Println("to array: ", fmt.Sprint(A))
 	return A

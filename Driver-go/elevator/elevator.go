@@ -6,6 +6,7 @@ import (
 
 const NUMBER_OF_FLOORS = 4
 const NUMBER_OF_BUTTONS = 3
+const NUMBER_OF_COLUMNS = NUMBER_OF_BUTTONS + 2
 const NUMBER_OF_ELEVATORS = 3
 
 type Elevator struct {
