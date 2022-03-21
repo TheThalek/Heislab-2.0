@@ -1,11 +1,11 @@
 package main
 
 import (
-	"Driver-go/singleFSM"
+	"Driver-go/network"
 )
 
 func main() {
 	//MS_FSM.maikenSinMain()
-	singleFSM.ThaleSinMain()
-	//network.PederSinMain()
+	//singleFSM.ThaleSinMain()
+	network.PederSinMain()
 }
