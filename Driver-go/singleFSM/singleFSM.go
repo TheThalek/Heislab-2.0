@@ -3,7 +3,7 @@ package singleFSM
 import (
 	"Driver-go/elevator"
 	"Driver-go/elevio"
-	"Driver-go/orders"
+	//"Driver-go/orders"
 )
 
 
@@ -19,41 +19,39 @@ const (
 func ThaleSinMain() {
 	slaveFSMinit()
 	fmt.Println("Test")
-	var masterOrderPanel [orders.ConstNumFloors][orders.ConstNumElevators+2]int
+	var masterOrderPanel [elevator.NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 
 	var localElevator elevator.Elevator
 
 	go slaveFSM(&localElevator, masterOrderPanel)
-
-
 }
 
 
 func SlaveFSMinit() {
 
 	//Make connection with local elevator, to make it run
-	elevio.Init("localhost:15657", orders.ConstNumFloors)
+	elevio.Init("localhost:15657", elevator.NUMBER_OF_FLOORS)
 
 	elevio.SetMotorDirection(elevio.MD_Down)
 
-	for f := 0; f < orders.ConstNumFloors; f++ {
+	for f := 0; f < elevator.NUMBER_OF_FLOORS; f++ {
 		for b := 0; b < 3; b++ {
 			elevio.SetButtonLamp(elevio.ButtonType(b), f, false)
 		}
 	}
 }
 
-func setLights(masterOrderPanel [orders.ConstNumFloors][orders.ConstNumElevators+2]int) {
-	for f := 0; f < numFloors; f ++{
-		for b := 0; b < 3; b++ {
-			if ((b = 0)||(b = 1)) { //If up or down pushed
-				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][b]!=OT_NoOrder)) //Will set the lamp on/off if 0/1or2
-			} else if (b = 2) { //If cab 
-				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][getElevatorIndex() + 2])!=OT_NoOrder)) //GetElevatorIndex gives the nr. of column
-			}
-		}
-	}
-}
+// func setLights(masterOrderPanel [orders.ConstNumFloors][orders.ConstNumElevators+2]int) {
+// 	for f := 0; f < numFloors; f ++{
+// 		for b := 0; b < 3; b++ {
+// 			if ((b = 0)||(b = 1)) { //If up or down pushed
+// 				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][b]!=OT_NoOrder)) //Will set the lamp on/off if 0/1or2
+// 			} else if (b = 2) { //If cab 
+// 				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][getElevatorIndex() + 2])!=OT_NoOrder)) //GetElevatorIndex gives the nr. of column
+// 			}
+// 		}
+// 	}
+// }
 
 func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [orders.ConstNumFloors][orders.ConstNumElevators+2]int) {
 	//Starter i Idle
@@ -65,8 +63,9 @@ func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [orders.ConstNu
 	drv_floors := make(chan int)
 	drv_obstr := make(chan bool)
 
-	taken_orders := make(chan )
-	new_order := make(chan )
+	//Skal lages i stor FSM
+	// taken_orders := make(chan []elevio.ButtonEvent)
+	// new_orders := make(chan []elevio.ButtonEvent)
 
 
 	go elevio.PollButtons(drv_buttons)
