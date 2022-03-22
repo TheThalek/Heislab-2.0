@@ -25,6 +25,12 @@ const (
 )
 
 
+func intAbs(x int) int {
+	if x < 0 {
+		x = -x
+	}
+	return x
+}
 
 func calculateOrderCost(order elevio.ButtonEvent, elevator elevator.Elevator) int {
 	// Based on costed scenarios: on the order floor,above or below floor, type of requirede turns - calculate the cost of the given order
@@ -115,12 +121,54 @@ func PrioritizeOrders(MasterOrderPanel * [ConstNumFloors][ConstNumButtons]int, a
 		} 
 
 	}
-	//and return list of priority orders -->available elevators
+	//or return list of priority orders -->available elevators
 	return availableElevators
 
 }
 
 
+
+//Make a function that get's the timeout message, and then sets and order back to OT_order
+
+func TimeOutElevatorOrder(MasterOrderPanel * [ConstNumFloors][ConstNumButtons]int, lostElevator elevator.Elevator){
+	lostOrder = lostElevator.GetPriOrder() 
+	if lostOrder.Button != BT_Cab{
+		MasterOrderPanel[lostOrder.Floor][lostOrder.Button] = OT_Order
+	}
+}
+
+
+//Set an order back to complete when it's been done, or if it's d
+//
+func CompletedOrder(MasterOrderPanel * [ConstNumFloors][ConstNumButtons]int, completeElevator elevator.Elevator){
+	completeOrder = completeElevator.GetPriOrder()
+	MasterOrderPanel[completeOrder.Floor][completeOrder.Button] = OT_NoOrder
+}
+
+func maikenSinMain(){
+	//Test av Orders funksjoner
+	var elevator_1 elevator.Elevator
+	elevator_1.direction = 1
+	elevator_1.currentFloor = 1
+	elevator_1.obs = false
+	elevator_1.priOrder.Floor = 1
+	elevator_1.priOrder.Button = 1
+
+	var elevator_2 elevator.Elevator
+	elevator_2.direction = 1
+	elevator_2.currentFloor = 1
+	elevator_2.obs = false
+	elevator_2.priOrder.Floor = 1
+	elevator_2.priOrder.Button = 1
+
+	//Testing scenario: 
+
+
+
+}
+
+
+//Fra Single Elevator - Peder:
 func PollPriorityOrder(priOrderChan <-chan elevio.ButtonEvent, orderPanel *[ConstNumFloors][3]int, myElevator *elevator.Elevator) {
 	for {
 		order := PriorityOrder(orderPanel, myElevator.GetCurrentFloor(), myElevator.GetDirection())
@@ -131,9 +179,3 @@ func PollPriorityOrder(priOrderChan <-chan elevio.ButtonEvent, orderPanel *[Cons
 	}
 }
 
-func intAbs(x int) int {
-	if x < 0 {
-		x = -x
-	}
-	return x
-}
