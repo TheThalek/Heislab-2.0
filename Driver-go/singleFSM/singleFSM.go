@@ -79,39 +79,41 @@ func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [orders.ConstNu
 		setLights(masterOrderPanel)
 		select {
 		case obstr := <-drv_obstr:
-			//Lagre obstruction i elevator_structen vår
-			//localElevator.SetObs(elevio.getObstruction()) KANSKJE ENDRE SLIK AT DEN ER PEKER(?)
+			//Hvis obs skrus på: 
+				//Lagre obstruction i elevator_structen vår
+				//localElevator.SetObs(elevio.getObstruction()) KANSKJE ENDRE SLIK AT DEN ER PEKER(?)
 
-			//Sette til IDLE, så venter den der til 
-			//IDLE! Stå i ro, fordi du 
+				//Ikkje køyr vidare til pri_floor, motordirection=stop!
+				//Gå til IDLE
+
+			//Hvis obs skrus av: 
+				//Lagre obstruction i elevator_structen vår
+				//localElevator.SetObs(elevio.getObstruction()) KANSKJE ENDRE SLIK AT DEN ER PEKER(?)
+
+				//Køyr vidare, hvis vi har 
+				//
 
 		case newfloor := <-drv_floors:
 			fmt.Printf("%+v\n", a)
 			//Oppdater etasjelys og elevator-objektet, slik at masterFSM veit kor du er
-
+			//Sjekke om du er i samme etasjen som prifloor er!
+				//Stopp
+				//Åpne dørene i 3 sek
+				//Lukk dørene og gå videre til anna state (?) 
+				//Send ut på kanalen om at relevante ordre har blitt tatt.
+					//Sjekk om 
 
 		case newButtons := <-drv_buttons:
 			//Send informasjon om at knappen har blitt tatt, til masterFSM, 
-		
+			//Har ikkje noko å seie for heisen ellers, skal berre informere stor FSM om dette
+			//Skriver dette til kanalen
 
 		case newPriority := <-priOrderChan:
+			//Ved ny priOrder, finn ut kor du er, køyr til priOrder(?)
 
 
 		}
 
 	}
-
-	// switch SlaveState {
-	// case Idle:
-	// 	if (priOrder != OT_NoOrder) {
-	// 		slaveState := Move
-	// 	}
-	// case Move: 
-
-	// case Obstruction:
-		
-	// default: 
-	// 	slaveState := Idle
-	// }
 }
 
