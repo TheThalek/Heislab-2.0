@@ -187,6 +187,12 @@ func NetworkConnect() string {
 	return id
 }
 
+func MaintainNetworkConnection() {
+	for {
+
+	}
+}
+
 func PederSinMain() {
 	// Our id can be anything. Here we pass it on the command line, using
 	//  `go run main.go -id=our_id`
