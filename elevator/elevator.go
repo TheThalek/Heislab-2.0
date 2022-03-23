@@ -1,4 +1,4 @@
-package elevator
+package main
 
 import (
 	"Driver-go/elevio"

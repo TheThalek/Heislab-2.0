@@ -1,11 +1,10 @@
-package network
+package main
 
 import (
-	"Driver-go/elevator"
 	"Driver-go/elevio"
-	"Driver-go/network/bcast"
-	"Driver-go/network/localip"
-	"Driver-go/network/peers"
+	"Network-go/network/bcast"
+	"Network-go/network/localip"
+	"Network-go/network/peers"
 	"flag"
 	"fmt"
 	"os"
@@ -25,8 +24,8 @@ type RemoteOrder struct {
 type MessageOrigin string
 
 const (
-	Master MessageOrigin = "MASTER"
-	Slave                = "SLAVE"
+	MO_Master MessageOrigin = "MASTER"
+	MO_Slave                = "SLAVE"
 )
 
 type NetworkMessage struct {
@@ -36,8 +35,8 @@ type NetworkMessage struct {
 	MessageString string
 }
 type MasterInformation struct {
-	OrderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_COLUMNS]int
-	Priorities [elevator.NUMBER_OF_ELEVATORS]RemoteOrder
+	OrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
+	Priorities [NUMBER_OF_ELEVATORS]RemoteOrder
 }
 type SlaveInformation struct {
 	direction       elevio.MotorDirection
@@ -55,10 +54,10 @@ func newNetworkMessage(origin MessageOrigin, id string, content string) NetworkM
 }
 func NewMasterMessage(id string, info MasterInformation) NetworkMessage {
 	infoString := fmt.Sprint(info.OrderPanel) + DELIM + fmt.Sprint(info.Priorities)
-	return newNetworkMessage(Master, id, infoString)
+	return newNetworkMessage(MO_Master, id, infoString)
 }
 func NewSlaveMessage(id string, info SlaveInformation) NetworkMessage {
-	return newNetworkMessage(Slave, id, strconv.Itoa(info.currentFloor)+DELIM+fmt.Sprint(info.direction)+DELIM+strconv.FormatBool(info.obs)+DELIM+fmt.Sprint(info.CompletedOrders)+DELIM+fmt.Sprint(info.NewOrders))
+	return newNetworkMessage(MO_Slave, id, strconv.Itoa(info.currentFloor)+DELIM+fmt.Sprint(info.direction)+DELIM+strconv.FormatBool(info.obs)+DELIM+fmt.Sprint(info.CompletedOrders)+DELIM+fmt.Sprint(info.NewOrders))
 }
 
 func StringToNetworkMsg(msg string) NetworkMessage {
@@ -72,7 +71,7 @@ func StringToNetworkMsg(msg string) NetworkMessage {
 func ExtractMasterInformation(masterMsg NetworkMessage, numFloors int, numButtons int, numElevs int) MasterInformation {
 	mSplit := strings.Split(masterMsg.Content, DELIM)
 	o := stringToIntArray(mSplit[0], numFloors, numButtons)
-	var orders [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_COLUMNS]int
+	var orders [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 	for i := 0; i < len(o); i++ {
 		for j := 0; j < len(o[0]); j++ {
 			orders[i][j] = o[i][j]
@@ -82,7 +81,7 @@ func ExtractMasterInformation(masterMsg NetworkMessage, numFloors int, numButton
 	mSplit[1] = strings.ReplaceAll(mSplit[1], "{", "")
 	mSplit[1] = strings.ReplaceAll(mSplit[1], "}", "")
 	priStrArray := strings.Split(mSplit[1], " ")
-	var pri [elevator.NUMBER_OF_ELEVATORS]RemoteOrder
+	var pri [NUMBER_OF_ELEVATORS]RemoteOrder
 	for i := 0; i < len(priStrArray); i = i + 3 {
 		id := priStrArray[i]
 		fl, _ := strconv.Atoi(priStrArray[i+1])
@@ -138,7 +137,7 @@ func ReportMasterTimeOut(masterTimeOutChan chan<- string, reset <-chan string) {
 	}
 }
 
-func SortPeers(peers []string) []string {
+func NetworkSortPeers(peers []string) []string {
 
 	var sortedPeers []string
 
@@ -163,15 +162,15 @@ func SortPeers(peers []string) []string {
 	return sortedPeers
 }
 
-var orderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_COLUMNS]int
-var priorityOrders [elevator.NUMBER_OF_ELEVATORS]RemoteOrder = [elevator.NUMBER_OF_ELEVATORS]RemoteOrder{newRemoteOrder("peer--1", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp}), newRemoteOrder("2", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp}), newRemoteOrder("3", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp})}
+var orderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
+var priorityOrders [NUMBER_OF_ELEVATORS]RemoteOrder = [NUMBER_OF_ELEVATORS]RemoteOrder{newRemoteOrder("peer--1", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp}), newRemoteOrder("2", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp}), newRemoteOrder("3", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp})}
 var nOrders []elevio.ButtonEvent = []elevio.ButtonEvent{
 	{Floor: 3, Button: elevio.BT_Cab},
 	{Floor: 1, Button: elevio.BT_HallDown},
 }
 var cOrders []elevio.ButtonEvent = nOrders
 
-func Connect() string {
+func NetworkConnect() string {
 	var id string
 	flag.StringVar(&id, "id", "", "id of this peer")
 	flag.Parse()
@@ -251,19 +250,19 @@ func PederSinMain() {
 		select {
 		case p := <-peerUpdateCh:
 			fmt.Printf("Peer update:\n")
-			fmt.Printf("  Peers:    %q\n", SortPeers(p.Peers))
+			fmt.Printf("  Peers:    %q\n", NetworkSortPeers(p.Peers))
 
 			fmt.Printf("  New:      %q\n", p.New)
 			fmt.Printf("  Lost:     %q\n", p.Lost)
 
 		case a := <-msgRx:
 			b := StringToNetworkMsg(a.MessageString)
-			if b.Origin == Master {
+			if b.Origin == MO_Master {
 				resetMasterTimeOut <- "reset"
 			}
 			if b.ID != id {
-				if b.Origin == Master {
-					info := ExtractMasterInformation(b, int(elevator.NUMBER_OF_FLOORS), int(elevator.NUMBER_OF_BUTTONS), int(elevator.NUMBER_OF_ELEVATORS))
+				if b.Origin == MO_Master {
+					info := ExtractMasterInformation(b, int(NUMBER_OF_FLOORS), int(NUMBER_OF_BUTTONS), int(NUMBER_OF_ELEVATORS))
 					fmt.Printf(id, " Received: %#v\n", info.OrderPanel)
 				} else {
 					info := ExtractSlaveInformation(b)
