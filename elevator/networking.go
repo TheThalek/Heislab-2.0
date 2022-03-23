@@ -54,10 +54,10 @@ func newNetworkMessage(origin MessageOrigin, id string, content string) NetworkM
 }
 func NewMasterMessage(id string, info MasterInformation) NetworkMessage {
 	infoString := fmt.Sprint(info.OrderPanel) + DELIM + fmt.Sprint(info.Priorities)
-	return newNetworkMessage(Master, id, infoString)
+	return newNetworkMessage(MO_Master, id, infoString)
 }
 func NewSlaveMessage(id string, info SlaveInformation) NetworkMessage {
-	return newNetworkMessage(Slave, id, strconv.Itoa(info.currentFloor)+DELIM+fmt.Sprint(info.direction)+DELIM+strconv.FormatBool(info.obs)+DELIM+fmt.Sprint(info.CompletedOrders)+DELIM+fmt.Sprint(info.NewOrders))
+	return newNetworkMessage(MO_Slave, id, strconv.Itoa(info.currentFloor)+DELIM+fmt.Sprint(info.direction)+DELIM+strconv.FormatBool(info.obs)+DELIM+fmt.Sprint(info.CompletedOrders)+DELIM+fmt.Sprint(info.NewOrders))
 }
 
 func StringToNetworkMsg(msg string) NetworkMessage {
@@ -257,11 +257,11 @@ func PederSinMain() {
 
 		case a := <-msgRx:
 			b := StringToNetworkMsg(a.MessageString)
-			if b.Origin == Master {
+			if b.Origin == MO_Master {
 				resetMasterTimeOut <- "reset"
 			}
 			if b.ID != id {
-				if b.Origin == Master {
+				if b.Origin == MO_Master {
 					info := ExtractMasterInformation(b, int(NUMBER_OF_FLOORS), int(NUMBER_OF_BUTTONS), int(NUMBER_OF_ELEVATORS))
 					fmt.Printf(id, " Received: %#v\n", info.OrderPanel)
 				} else {
