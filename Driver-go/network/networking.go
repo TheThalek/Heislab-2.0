@@ -138,6 +138,31 @@ func ReportMasterTimeOut(masterTimeOutChan chan<- string, reset <-chan string) {
 	}
 }
 
+func SortPeers(peers []string) []string {
+
+	var sortedPeers []string
+
+	sortedPeers = append(sortedPeers, peers[0])
+
+	if len(peers) == 1 {
+		return sortedPeers
+	}
+
+	for i := 1; i < len(peers); i++ {
+		val, _ := strconv.Atoi(strings.Split(strings.Split(peers[i], "-")[1], ".")[3])
+		j := 0
+		for {
+			cmp, _ := strconv.Atoi(strings.Split(strings.Split(peers[j], "-")[1], ".")[3])
+			if val < cmp || j+1 == len(sortedPeers) {
+				break
+			}
+		}
+		sortedPeers = append(append(sortedPeers[0:j], peers[j]), sortedPeers[j+1:]...)
+	}
+
+	return sortedPeers
+}
+
 var orderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_COLUMNS]int
 var priorityOrders [elevator.NUMBER_OF_ELEVATORS]RemoteOrder = [elevator.NUMBER_OF_ELEVATORS]RemoteOrder{newRemoteOrder("peer--1", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp}), newRemoteOrder("2", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp}), newRemoteOrder("3", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp})}
 var nOrders []elevio.ButtonEvent = []elevio.ButtonEvent{
@@ -145,6 +170,23 @@ var nOrders []elevio.ButtonEvent = []elevio.ButtonEvent{
 	{Floor: 1, Button: elevio.BT_HallDown},
 }
 var cOrders []elevio.ButtonEvent = nOrders
+
+func Connect() string {
+	var id string
+	flag.StringVar(&id, "id", "", "id of this peer")
+	flag.Parse()
+
+	if id == "" {
+		localIP, err := localip.LocalIP()
+		if err != nil {
+			fmt.Println(err)
+			localIP = "DISCONNECTED"
+		}
+		id = fmt.Sprintf("peer-%s-%d", localIP, os.Getpid())
+	}
+
+	return id
+}
 
 func PederSinMain() {
 	// Our id can be anything. Here we pass it on the command line, using
@@ -209,7 +251,8 @@ func PederSinMain() {
 		select {
 		case p := <-peerUpdateCh:
 			fmt.Printf("Peer update:\n")
-			fmt.Printf("  Peers:    %q\n", p.Peers)
+			fmt.Printf("  Peers:    %q\n", SortPeers(p.Peers))
+
 			fmt.Printf("  New:      %q\n", p.New)
 			fmt.Printf("  Lost:     %q\n", p.Lost)
 
