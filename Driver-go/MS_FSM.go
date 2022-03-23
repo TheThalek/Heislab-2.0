@@ -1,10 +1,8 @@
-package MS_FSM
+package main
 
 import (
-	"Driver-go/elevator"
-	"Driver-go/network"
-	"Driver-go/network/bcast"
-	"Driver-go/network/peers"
+	"Network-go/network/bcast"
+	"Network-go/network/peers"
 )
 
 // case init
@@ -25,8 +23,8 @@ const (
 
 var networkPeers []string
 
-var myElevator elevator.Elevator
-var orderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_COLUMNS]int
+var myElevator Elevator
+var MasterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 
 func RunSystemFSM() {
 	var sysState SystemState = Initialization
@@ -37,13 +35,13 @@ func RunSystemFSM() {
 	//go RunSingleFSM()
 
 	//network
-	id := network.Connect()
+	id := NetworkConnect()
 
 	peerUpdateCh := make(chan peers.PeerUpdate)
 	peerTxEnable := make(chan bool)
 
-	msgTx := make(chan network.NetworkMessage)
-	msgRx := make(chan network.NetworkMessage)
+	msgTx := make(chan NetworkMessage)
+	msgRx := make(chan NetworkMessage)
 
 	go bcast.Transmitter(16569, msgTx)
 	go bcast.Receiver(16569, msgRx)
@@ -52,7 +50,7 @@ func RunSystemFSM() {
 
 	mTimeout := make(chan string)
 	resetMasterTimeOut := make(chan string)
-	go network.ReportMasterTimeOut(mTimeout, resetMasterTimeOut)
+	go ReportMasterTimeOut(mTimeout, resetMasterTimeOut)
 
 	sysState = Connect
 	for {
@@ -61,14 +59,14 @@ func RunSystemFSM() {
 			networkPeers = p.Peers
 			switch sysState {
 			case Connect:
-				if len(networkPeers) == 1 && elevator.NUMBER_OF_ELEVATORS != 1 {
-					id = network.Connect()
+				if len(networkPeers) == 1 && NUMBER_OF_ELEVATORS != 1 {
+					id = NetworkConnect()
 					go bcast.Transmitter(16569, msgTx)
 					go bcast.Receiver(16569, msgRx)
 					go peers.Transmitter(15647, id, peerTxEnable)
 					go peers.Receiver(15647, peerUpdateCh)
 				}
-				if id == network.SortPeers(networkPeers)[0] {
+				if id == NetworkSortPeers(networkPeers)[0] {
 					sysState = Master
 					//msgTx <- network.NewMasterMessage(id,)
 				} else {
@@ -77,7 +75,7 @@ func RunSystemFSM() {
 				}
 
 			case Slave:
-				if network.SortPeers(networkPeers)[0] == id {
+				if NetworkSortPeers(networkPeers)[0] == id {
 					sysState = Master
 				}
 			case Master:
