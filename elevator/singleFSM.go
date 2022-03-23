@@ -56,14 +56,14 @@ func setLights(masterOrderPanel [orders.ConstNumFloors][orders.ConstNumElevators
 
 
 //THALE JOBBER M RESTEN
-func pollPriority(localElevator *Elevator, priChan chan elevio.ButtonEvent) {
+func pollPriFloor() {
 	for {
 		priChan <- localElevator.GetPriOrder()
 	}
 }
 
-func SlaveFSM(localElevator *Elevator, masterOrderPanel [orders.ConstNumFloors][orders.ConstNumElevators+2]int) {
-	//Starter i Idle
+func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_COLUMNS]int, taken_orders <-chan []elevio.ButtonEvent, new_orders <-chan []elevio.ButtonEvent) {
+	
 	var state SlaveState = Idle
 
 	//Og kjøre nedover til den når den nederste etasjen sin!
@@ -71,42 +71,51 @@ func SlaveFSM(localElevator *Elevator, masterOrderPanel [orders.ConstNumFloors][
 	drv_buttons := make(chan elevio.ButtonEvent)
 	drv_floors := make(chan int)
 	drv_obstr := make(chan bool)
-
-	//Skal lages i stor FSM
-	// taken_orders := make(chan []elevio.ButtonEvent)
-	// new_orders := make(chan []elevio.ButtonEvent)
-
+	priOrderChan := make(chan elevio.ButtonEvent)
 
 	go elevio.PollButtons(drv_buttons)
 	go elevio.PollFloorSensor(drv_floors)
 	go elevio.PollObstructionSwitch(drv_obstr)
-	go pollPriority(priOrderChan)
+	go pollPriFloor(priOrderChan)
 
 
 	for {
-		//Skru lysene på/av ut ifrå masterOrderPanel som kontinuerlig blir tatt inn
 		setLights(masterOrderPanel)
-		//driveTo
+
+		if (SlaveState = Move) {
+			//Køyr til etasjen du skal til OG du må endre direction du går i (i localElevator), dersom du endrer denne!
+			DriveTo(elevator.GetPriOrder(), &localElevator)
+		} 
+
 		select {
 		case obstr := <-drv_obstr:
-			//Hvis obs skrus på: 
-				//Lagre obstruction i elevator_structen vår
-				//localElevator.SetObs(elevio.getObstruction()) KANSKJE ENDRE SLIK AT DEN ER PEKER(?)
+			switch {
+			case SlaveState = Move:
+				elevio.SetMotorDirection(elevio.MD_Stop)
+				localElevator.setobs(true)
+				SlaveState = Obstruction
+			case SlaveState = Idle: 
+				localElevator.setobs(true)
+				SlaveState = Obstruction
+			case SlaveState = Obstruction:
+				if (localElevator.GetPriOrder() = OT_NoOrder) {
+					localElevator.setobs(false)
+					SlaveState = Idle
+				} else {
+					localElevator.setobs(false)
+					SlaveState = Move
+				}
+			}
 
-				//Ikkje køyr vidare til pri_floor, motordirection=stop!
-				//Gå til IDLE
+		case newFloor := <-drv_floors:
+			localElevator.SetFloor(newFloor)
+			SetFloorIndicator(newFloor)
+			//Ikkje vits med ein switch med Idle o.l. Fordi ein MÅ ha vore i move før du kjem dit!
 
-			//Hvis obs skrus av: 
-				//Lagre obstruction i elevator_structen vår
-				//localElevator.SetObs(elevio.getObstruction()) KANSKJE ENDRE SLIK AT DEN ER PEKER(?)
-
-				//Køyr vidare, hvis vi har 
-				//
-
-		case newfloor := <-drv_floors:
-			fmt.Printf("%+v\n", a)
-			//Oppdater etasjelys og elevator-objektet, slik at masterFSM veit kor du er
-			//Eneste stedet du har lov til å stoppe
+			if newFloor = localElevator.GetPriOrder().Floor {
+				elevio.SetMotorDirection(elevio.MD_Stop)
+				
+			}
 			//Sjekke om du er i samme etasjen som prifloor er!
 				//Stopp
 				//Åpne dørene i 3 sek
