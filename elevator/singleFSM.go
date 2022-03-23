@@ -66,7 +66,7 @@ func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [elevator.NUMBE
 	
 	var state SlaveState = Idle
 	var currentDirection = MD_Down
-	localElevator.setDirection = currentDirection
+	localElevator.setDirection(currentDirection)
 
 	//Og kjøre nedover til den når den nederste etasjen sin!
 
@@ -84,7 +84,7 @@ func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [elevator.NUMBE
 	for {		
 		if (SlaveState = Move) {
 			//Køyr til etasjen du skal til OG du må endre direction du går i (i localElevator), dersom du endrer denne!
-			DriveTo(elevator.GetPriOrder(), &localElevator)
+			driveTo(&localElevator)
 		} 
 
 		select {
@@ -149,3 +149,15 @@ func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [elevator.NUMBE
 	}
 }
 
+func driveTo(localElevator *elevator.Elevator) {
+	var int lastFloor = localElevator.getFloor()
+	var int newFloor = localElevator.GetPriOrder().Floor
+
+	if newFloor < lastFloor {
+		elevio.SetMotorDirection(elevio.MD_Down)
+		localElevator.setDirection(MD_Down)
+	} else if newFloor < lastFloor {
+		elevio.SetMotorDirection(elevio.MD_Up)
+		localElevator.setDirection(MD_Up)
+	}
+}
