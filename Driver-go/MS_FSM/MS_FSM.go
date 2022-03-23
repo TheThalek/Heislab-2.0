@@ -45,6 +45,11 @@ func RunSystemFSM() {
 	msgTx := make(chan network.NetworkMessage)
 	msgRx := make(chan network.NetworkMessage)
 
+	go bcast.Transmitter(16569, msgTx)
+	go bcast.Receiver(16569, msgRx)
+	go peers.Transmitter(15647, id, peerTxEnable)
+	go peers.Receiver(15647, peerUpdateCh)
+
 	mTimeout := make(chan string)
 	resetMasterTimeOut := make(chan string)
 	go network.ReportMasterTimeOut(mTimeout, resetMasterTimeOut)
@@ -63,7 +68,14 @@ func RunSystemFSM() {
 					go peers.Transmitter(15647, id, peerTxEnable)
 					go peers.Receiver(15647, peerUpdateCh)
 				}
-				sysState = Slave
+				if id == network.SortPeers(networkPeers)[0] {
+					sysState = Master
+					//msgTx <- network.NewMasterMessage(id,)
+				} else {
+					sysState = Slave
+					//msgTx <- network.NewMasterMessage(id,)
+				}
+
 			case Slave:
 				if network.SortPeers(networkPeers)[0] == id {
 					sysState = Master
