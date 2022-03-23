@@ -62,9 +62,11 @@ func pollPriFloor() {
 	}
 }
 
-func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_COLUMNS]int, taken_orders <-chan []elevio.ButtonEvent, new_orders <-chan []elevio.ButtonEvent) {
+func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_COLUMNS]int, takenOrders <-chan []elevio.ButtonEvent, newOrders <-chan []elevio.ButtonEvent) {
 	
 	var state SlaveState = Idle
+	var currentDirection = MD_Down
+	localElevator.setDirection = currentDirection
 
 	//Og kjøre nedover til den når den nederste etasjen sin!
 
@@ -76,12 +78,10 @@ func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [elevator.NUMBE
 	go elevio.PollButtons(drv_buttons)
 	go elevio.PollFloorSensor(drv_floors)
 	go elevio.PollObstructionSwitch(drv_obstr)
-	go pollPriFloor(priOrderChan)
+	go pollPriFloor(priOrderChan) 
+	go setLights(masterOrderPanel)
 
-
-	for {
-		setLights(masterOrderPanel)
-
+	for {		
 		if (SlaveState = Move) {
 			//Køyr til etasjen du skal til OG du må endre direction du går i (i localElevator), dersom du endrer denne!
 			DriveTo(elevator.GetPriOrder(), &localElevator)
@@ -110,30 +110,42 @@ func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [elevator.NUMBE
 		case newFloor := <-drv_floors:
 			localElevator.SetFloor(newFloor)
 			SetFloorIndicator(newFloor)
-			//Ikkje vits med ein switch med Idle o.l. Fordi ein MÅ ha vore i move før du kjem dit!
 
 			if newFloor = localElevator.GetPriOrder().Floor {
 				elevio.SetMotorDirection(elevio.MD_Stop)
-				
+				SetDoorOpenLamp(true)
+				time.Sleep(3 * time.Second)
+				SetDoorOpenLamp(false)
+				cabOrder := elevio.ButtonEvent{
+					Floor: newFloor, 
+					Button: elevio.ButtonType(2),
+				}
+				if (localElevator.GetDirection() = MD_Down) {
+					dirOrder := elevio.ButtonEvent{
+						Floor: newFloor,
+						Button:elevio.ButtonType(1),
+					}
+	
+				} else if (localElevator.GetDirection() = MD_Up) {
+					dirOrder := elevio.ButtonEvent{
+						Floor: newFloor,
+						Button:elevio.ButtonType(0),
+					}
+				}
+				takenOrders <- [cabOrder, dirOrder]
+				SlaveState = Idle
 			}
-			//Sjekke om du er i samme etasjen som prifloor er!
-				//Stopp
-				//Åpne dørene i 3 sek
-				//Lukk dørene og gå videre til anna state (?) 
-				//Send ut på kanalen om at relevante ordre har blitt tatt.
-					//Sjekk om 
 
 		case newButtons := <-drv_buttons:
-			//Send informasjon om at knappen har blitt tatt, til masterFSM, 
-			//Har ikkje noko å seie for heisen ellers, skal berre informere stor FSM om dette
-			//Skriver dette til kanalen
+			newOrders <- newButtons
 
-		case newPriority := <-priOrderChan:
-			//Ved ny priOrder, finn ut kor du er, køyr til priOrder(?)
-
-
+		case priority := <-priOrderChan:
+			if (priority.Floor = -1) { 
+				SlaveState = Idle
+			} else {
+				SlaveState = Move
+			}
 		}
-
 	}
 }
 
