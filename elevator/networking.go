@@ -148,10 +148,10 @@ func NetworkSortPeers(peers []string) []string {
 	}
 
 	for i := 1; i < len(peers); i++ {
-		val, _ := strconv.Atoi(strings.Split(strings.Split(peers[i], "-")[1], ".")[3])
+		val, _ := strconv.Atoi(strings.Split(peers[i], "-")[2])
 		j := 0
 		for {
-			cmp, _ := strconv.Atoi(strings.Split(strings.Split(peers[j], "-")[1], ".")[3])
+			cmp, _ := strconv.Atoi(strings.Split(peers[j], "-")[2])
 			if val < cmp || j+1 == len(sortedPeers) {
 				break
 			}
@@ -170,10 +170,7 @@ var nOrders []elevio.ButtonEvent = []elevio.ButtonEvent{
 }
 var cOrders []elevio.ButtonEvent = nOrders
 
-func NetworkConnect() string {
-	var id string
-	flag.StringVar(&id, "id", "", "id of this peer")
-	flag.Parse()
+func NetworkConnect(id string) string {
 
 	if id == "" {
 		localIP, err := localip.LocalIP()
@@ -187,8 +184,21 @@ func NetworkConnect() string {
 	return id
 }
 
-func MaintainNetworkConnection() {
+func MaintainNetworkConnection(id string) {
 	for {
+		peerUpdateCh := make(chan peers.PeerUpdate)
+		peerTxEnable := make(chan bool)
+		go peers.Transmitter(15647, id, peerTxEnable)
+		go peers.Receiver(15647, peerUpdateCh)
+
+		msgTx := make(chan NetworkMessage)
+		msgRx := make(chan NetworkMessage)
+		go bcast.Transmitter(16569, msgTx)
+		go bcast.Receiver(16569, msgRx)
+
+		mTimeout := make(chan string)
+		resetMasterTimeOut := make(chan string)
+		go ReportMasterTimeOut(mTimeout, resetMasterTimeOut)
 
 	}
 }
@@ -197,20 +207,10 @@ func PederSinMain() {
 	// Our id can be anything. Here we pass it on the command line, using
 	//  `go run main.go -id=our_id`
 	var id string
+
 	flag.StringVar(&id, "id", "", "id of this peer")
 	flag.Parse()
-
-	// ... or alternatively, we can use the local IP address.
-	// (But since we can run multiple programs on the same PC, we also append the
-	//  process ID)
-	if id == "" {
-		localIP, err := localip.LocalIP()
-		if err != nil {
-			fmt.Println(err)
-			localIP = "DISCONNECTED"
-		}
-		id = fmt.Sprintf("peer-%s-%d", localIP, os.Getpid())
-	}
+	id = NetworkConnect(id)
 
 	// We make a channel for receiving updates on the id's of the peers that are
 	//  alive on the network
@@ -253,6 +253,7 @@ func PederSinMain() {
 
 	fmt.Println("Started")
 	for {
+		id = NetworkConnect("")
 		select {
 		case p := <-peerUpdateCh:
 			fmt.Printf("Peer update:\n")

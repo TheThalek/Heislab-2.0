@@ -35,7 +35,8 @@ func RunSystemFSM() {
 	//go RunSingleFSM()
 
 	//network
-	id := NetworkConnect()
+	var id string
+	id = NetworkConnect(id)
 
 	peerUpdateCh := make(chan peers.PeerUpdate)
 	peerTxEnable := make(chan bool)
