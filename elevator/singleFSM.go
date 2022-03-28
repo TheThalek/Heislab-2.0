@@ -21,21 +21,23 @@ func ThaleSinMain() {
 	var masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 
 	var localElevator Elevator
-
+	
 	go slaveFSM(&localElevator, masterOrderPanel)
+
+	for {
+
+	}
 }
 
 
 func SlaveFSMinit() {
+	Init("localhost:15657", NUMBER_OF_FLOORS)
 
-	//Make connection with local elevator, to make it run
-	elevio.Init("localhost:15657", NUMBER_OF_FLOORS)
-
-	elevio.SetMotorDirection(elevio.MD_Down)
+	SetMotorDirection(MD_Down)
 
 	for f := 0; f < NUMBER_OF_FLOORS; f++ {
 		for b := 0; b < 3; b++ {
-			elevio.SetButtonLamp(elevio.ButtonType(b), f, false)
+			SetButtonLamp(ButtonType(b), f, false)
 		}
 	}
 }
@@ -45,10 +47,10 @@ func SlaveFSMinit() {
 func setLights(masterOrderPanel [orders.ConstNumFloors][orders.ConstNumElevators+2]int) {
 	for f := 0; f < numFloors; f ++{
 		for b := 0; b < 3; b++ {
-			if ((b = 0)||(b = 1)) { //If up or down pushed
+			if ((b == 0)||(b == 1)) { //If up or down pushed
 				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][b]!=OT_NoOrder)) //Will set the lamp on/off if 0/1or2
-			} else if (b = 2) { //If cab 
-				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][getElevatorIndex() + 2])!=OT_NoOrder)) //GetElevatorIndex gives the nr. of column
+			} else if (b == 2) { //If cab 
+				elevio.SetButtonLamp(elevio.ButtonType(b), f, (masterOrderPanel[f][getElevatorIndex() + 2])!=OT_NoOrder) //GetElevatorIndex gives the nr. of column
 			}
 		}
 	}
@@ -82,7 +84,7 @@ func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [elevator.NUMBE
 	go setLights(masterOrderPanel)
 
 	for {		
-		if (SlaveState = Move) {
+		if SlaveState == Move {
 			//Køyr til etasjen du skal til OG du må endre direction du går i (i localElevator), dersom du endrer denne!
 			driveTo(&localElevator)
 		} 
@@ -90,15 +92,15 @@ func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [elevator.NUMBE
 		select {
 		case obstr := <-drv_obstr:
 			switch {
-			case SlaveState = Move:
+			case SlaveState == Move:
 				elevio.SetMotorDirection(elevio.MD_Stop)
 				localElevator.setobs(true)
 				SlaveState = Obstruction
-			case SlaveState = Idle: 
+			case SlaveState == Idle: 
 				localElevator.setobs(true)
 				SlaveState = Obstruction
-			case SlaveState = Obstruction:
-				if (localElevator.GetPriOrder() = OT_NoOrder) {
+			case SlaveState == Obstruction:
+				if (localElevator.GetPriOrder() == OT_NoOrder) {
 					localElevator.setobs(false)
 					SlaveState = Idle
 				} else {
@@ -111,7 +113,7 @@ func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [elevator.NUMBE
 			localElevator.SetFloor(newFloor)
 			SetFloorIndicator(newFloor)
 
-			if newFloor = localElevator.GetPriOrder().Floor {
+			if newFloor == localElevator.GetPriOrder().Floor {
 				elevio.SetMotorDirection(elevio.MD_Stop)
 				SetDoorOpenLamp(true)
 				time.Sleep(3 * time.Second)
@@ -120,19 +122,20 @@ func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [elevator.NUMBE
 					Floor: newFloor, 
 					Button: elevio.ButtonType(2),
 				}
-				if (localElevator.GetDirection() = MD_Down) {
+				if (localElevator.GetDirection() == MD_Down) {
 					dirOrder := elevio.ButtonEvent{
 						Floor: newFloor,
 						Button:elevio.ButtonType(1),
 					}
 	
-				} else if (localElevator.GetDirection() = MD_Up) {
+				} else if (localElevator.GetDirection() == MD_Up) {
 					dirOrder := elevio.ButtonEvent{
 						Floor: newFloor,
 						Button:elevio.ButtonType(0),
 					}
 				}
-				takenOrders <- [cabOrder, dirOrder]
+				var cabDirOrder []ButtonEvent = [cabOrder, dirOrder]
+				takenOrders <- cabDirOrder
 				SlaveState = Idle
 			}
 
@@ -140,7 +143,7 @@ func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [elevator.NUMBE
 			newOrders <- newButtons
 
 		case priority := <-priOrderChan:
-			if (priority.Floor = -1) { 
+			if (priority.Floor == -1) { 
 				SlaveState = Idle
 			} else {
 				SlaveState = Move
@@ -150,8 +153,8 @@ func SlaveFSM(localElevator *elevator.Elevator, masterOrderPanel [elevator.NUMBE
 }
 
 func driveTo(localElevator *elevator.Elevator) {
-	var int lastFloor = localElevator.getFloor()
-	var int newFloor = localElevator.GetPriOrder().Floor
+	var lastFloor int= localElevator.getFloor()
+	var newFloor int= localElevator.GetPriOrder().Floor
 
 	if newFloor < lastFloor {
 		elevio.SetMotorDirection(elevio.MD_Down)
