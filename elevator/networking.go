@@ -194,22 +194,52 @@ func NetworkConnect(id string) string {
 	return id
 }
 
-func MaintainNetworkConnection(id string) {
+func RunNetworkInterface(msgTx <-chan NetworkMessage, receivedMessages chan<- NetworkMessage, roleChan chan<- string) {
+	var id string
+	flag.StringVar(&id, "id", "", "id of this peer")
+	flag.Parse()
+	id = NetworkConnect(id)
+
+	var networkPeers []string
+	networkPeers = append(networkPeers, id)
+
+	peerUpdateCh := make(chan peers.PeerUpdate)
+	peerTxEnable := make(chan bool)
+	go peers.Transmitter(15647, id, peerTxEnable)
+	go peers.Receiver(15647, peerUpdateCh)
+
+	msgRx := make(chan NetworkMessage)
+	go bcast.Transmitter(16569, msgTx)
+	go bcast.Receiver(16569, msgRx)
+
+	mTimeout := make(chan string)
+	resetMasterTimeOut := make(chan string)
+	go ReportMasterTimeOut(mTimeout, resetMasterTimeOut)
+
+	fmt.Println("Started")
 	for {
-		peerUpdateCh := make(chan peers.PeerUpdate)
-		peerTxEnable := make(chan bool)
-		go peers.Transmitter(15647, id, peerTxEnable)
-		go peers.Receiver(15647, peerUpdateCh)
-
-		msgTx := make(chan NetworkMessage)
-		msgRx := make(chan NetworkMessage)
-		go bcast.Transmitter(16569, msgTx)
-		go bcast.Receiver(16569, msgRx)
-
-		mTimeout := make(chan string)
-		resetMasterTimeOut := make(chan string)
-		go ReportMasterTimeOut(mTimeout, resetMasterTimeOut)
-
+		id = NetworkConnect("")
+		select {
+		case p := <-peerUpdateCh:
+			networkPeers = NetworkSortPeers(p.Peers)
+			fmt.Println("Peer update: ")
+			fmt.Println("  Peers:    \n", networkPeers)
+			fmt.Println("  New:      \n", p.New)
+			fmt.Println("  Lost:     \n", p.Lost)
+		case a := <-msgRx:
+			b := StringToNetworkMsg(a.MessageString)
+			if b.Origin == MO_Master && len(networkPeers) > 1 {
+				resetMasterTimeOut <- "reset"
+			} else if len(networkPeers) == 1 {
+				roleChan <- string(MO_Slave)
+			}
+			receivedMessages <- a
+		case <-mTimeout:
+			fmt.Println(id, ">> Master Timeout")
+			if id == networkPeers[0] {
+				roleChan <- string(MO_Master)
+			}
+		}
 	}
 }
 
@@ -257,11 +287,7 @@ func PederSinMain() {
 
 	fmt.Println("Started")
 	for {
-		idSplit := strings.Split(id, "-")
-		ip := idSplit[1]
-		if ip == "DISCONNECTED" {
-
-		}
+		id = NetworkConnect("")
 		select {
 		case p := <-peerUpdateCh:
 			networkPeers = NetworkSortPeers(p.Peers)
