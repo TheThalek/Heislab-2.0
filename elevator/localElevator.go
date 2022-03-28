@@ -15,7 +15,7 @@ const (
 )
 
 func ThaleSinMain() {
-	SlaveFSMinit()
+	LocalInit()
 	fmt.Println("Test")
 	var masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 
@@ -23,15 +23,15 @@ func ThaleSinMain() {
 
 	ElevIndexChan := make(chan int)
 	takenOrdersChan := make(chan []elevio.ButtonEvent)
-	newOrdersChan := make(chan []elevio.ButtonEvent)
+	newOrdersChan := make(chan elevio.ButtonEvent)
 
-	go SlaveFSM(&myElevator, masterOrderPanel, takenOrdersChan, newOrdersChan, ElevIndexChan)
+	go LocalControl(&myElevator, masterOrderPanel, takenOrdersChan, newOrdersChan, ElevIndexChan)
 
 	for {
 	}
 }
 
-func SlaveFSMinit() {
+func LocalInit() {
 	elevio.Init("localhost:15657", NUMBER_OF_FLOORS)
 
 	elevio.SetMotorDirection(elevio.MD_Down)
@@ -57,13 +57,13 @@ func setLights(masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, elevIn
 }
 
 //THALE JOBBER M RESTEN
-func pollPriFloor(priOrder chan elevio.ButtonEvent, myElevator Elevator) {
+func pollPriFloor(priOrder chan elevio.ButtonEvent, myElevator *Elevator) {
 	for {
 		priOrder <- myElevator.GetPriOrder()
 	}
 }
 
-func SlaveFSM(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, takenOrders chan []elevio.ButtonEvent, newOrders chan []elevio.ButtonEvent, elevIndex chan int) {
+func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, takenOrders chan []elevio.ButtonEvent, newOrders chan elevio.ButtonEvent, elevIndex chan int) {
 
 	var state SlaveState = Idle
 	var currentDirection elevio.MotorDirection = elevio.MD_Down
@@ -80,7 +80,7 @@ func SlaveFSM(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_O
 
 	go elevio.PollFloorSensor(drv_floors)
 	go elevio.PollObstructionSwitch(drv_obstr)
-	go pollPriFloor(priOrderChan, myElevator)
+	go pollPriFloor(priOrderChan, &myElevator)
 	go setLights(masterOrderPanel, <-elevIndex) //TO DO; ha med en "polingsfunksjon" i main
 
 	for {
@@ -94,32 +94,32 @@ func SlaveFSM(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_O
 			switch {
 			case state == Move:
 				elevio.SetMotorDirection(elevio.MD_Stop)
-				myElevator.setObs(true)
+				myElevator.SetObs(true)
 				state = Obstruction
 			case state == Idle:
-				myElevator.setObs(true)
+				myElevator.SetObs(true)
 				state = Obstruction
 			case state == Obstruction:
 				if myElevator.GetPriOrder() == OT_NoOrder {
-					myElevator.setobs(false)
+					myElevator.SetObs(false)
 					state = Idle
 				} else {
-					myElevator.setobs(false)
+					myElevator.SetObs(false)
 					state = Move
 				}
 			}
 
 		case newFloor := <-drv_floors:
 			myElevator.SetFloor(newFloor)
-			SetFloorIndicator(newFloor)
+			elevio.SetFloorIndicator(newFloor)
 
 			if newFloor == myElevator.GetPriOrder().Floor {
 				elevio.SetMotorDirection(elevio.MD_Stop)
-				SetDoorOpenLamp(true)
+				elevio.SetDoorOpenLamp(true)
 				time.Sleep(3 * time.Second)
-				SetDoorOpenLamp(false)
+				elevio.SetDoorOpenLamp(false)
 
-				var completedOrders []ButtonEvent
+				var completedOrders []elevio.ButtonEvent
 				if masterOrderPanel[newFloor][<-elevIndex+2] != OT_NoOrder {
 					cabOrder := elevio.ButtonEvent{
 						Floor:  newFloor,
@@ -127,13 +127,13 @@ func SlaveFSM(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_O
 					}
 					completedOrders = append(completedOrders, cabOrder)
 				}
-				if (masterOrderPanel[newFloor][0] != OT_NoOrder) & (myElevator.GetDirection() == MD_Up) {
+				if (masterOrderPanel[newFloor][0] != OT_NoOrder) & (myElevator.GetDirection() == elevio.MD_Up) {
 					dirOrder := elevio.ButtonEvent{
 						Floor:  newFloor,
 						Button: elevio.ButtonType(0),
 					}
 					completedOrders = append(completedOrders, dirOrder)
-				} else if (masterOrderPanel[newFloor][1] != OT_NoOrder) & (myElevator.GetDirection() == MD_Down) {
+				} else if (masterOrderPanel[newFloor][1] != OT_NoOrder) & (myElevator.GetDirection() == elevio.MD_Down) {
 					dirOrder := elevio.ButtonEvent{
 						Floor:  newFloor,
 						Button: elevio.ButtonType(1),
