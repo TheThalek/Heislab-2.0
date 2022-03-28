@@ -57,7 +57,7 @@ func setLights(masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, elevIn
 }
 
 //THALE JOBBER M RESTEN
-func pollPriFloor(priOrder chan elevio.ButtonEvent, myElevator *Elevator) {
+func pollPriFloor(priOrder chan elevio.ButtonEvent, myElevator Elevator) {
 	for {
 		priOrder <- myElevator.GetPriOrder()
 	}
@@ -80,7 +80,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMB
 
 	go elevio.PollFloorSensor(drv_floors)
 	go elevio.PollObstructionSwitch(drv_obstr)
-	go pollPriFloor(priOrderChan, &myElevator)
+	go pollPriFloor(priOrderChan, myElevator)
 	go setLights(masterOrderPanel, <-elevIndex) //TO DO; ha med en "polingsfunksjon" i main
 
 	for {
@@ -158,15 +158,15 @@ func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMB
 	}
 }
 
-func driveTo(myElevator *elevator.Elevator) {
-	var lastFloor int = myElevator.getFloor()
+func driveTo(myElevator *Elevator) {
+	var lastFloor int = myElevator.GetCurrentFloor()
 	var newFloor int = myElevator.GetPriOrder().Floor
 
 	if newFloor < lastFloor {
 		elevio.SetMotorDirection(elevio.MD_Down)
-		myElevator.setDirection(elevio.MD_Down)
+		myElevator.SetDirection(elevio.MD_Down)
 	} else if newFloor < lastFloor {
 		elevio.SetMotorDirection(elevio.MD_Up)
-		myElevator.setDirection(elevio.MD_Up)
+		myElevator.SetDirection(elevio.MD_Up)
 	}
 }
