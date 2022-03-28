@@ -66,8 +66,8 @@ func pollPriFloor(priOrder chan elevio.ButtonEvent, myElevator Elevator) {
 func SlaveFSM(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, takenOrders chan []elevio.ButtonEvent, newOrders chan []elevio.ButtonEvent, elevIndex chan int) {
 
 	var state SlaveState = Idle
-	var currentDirection = elevio.MD_Down
-	myElevator.setDirection(currentDirection)
+	var currentDirection elevio.MotorDirection = elevio.MD_Down
+	myElevator.SetDirection(currentDirection)
 
 	//Og kjøre nedover til den når den nederste etasjen sin!
 
@@ -77,9 +77,10 @@ func SlaveFSM(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_O
 	priOrderChan := make(chan elevio.ButtonEvent)
 
 	go elevio.PollButtons(drv_buttons)
+
 	go elevio.PollFloorSensor(drv_floors)
 	go elevio.PollObstructionSwitch(drv_obstr)
-	go pollPriFloor(<-priOrderChan, myElevator)
+	go pollPriFloor(priOrderChan, myElevator)
 	go setLights(masterOrderPanel, <-elevIndex) //TO DO; ha med en "polingsfunksjon" i main
 
 	for {
