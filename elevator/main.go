@@ -9,7 +9,7 @@ func main() {
 	//MS_FSM.maikenSinMain()
 	//singleFSM.ThaleSinMain()
 	go PederSinMain()
-	//MS_FSM.RunSystemFSM()
+	//RunSystemFSM()
 	for {
 	}
 }
