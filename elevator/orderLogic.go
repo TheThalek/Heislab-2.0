@@ -29,13 +29,12 @@ var MasterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 func RunSystemFSM() {
 	var sysState SystemState = Initialization
 	//hardware
-
-	//var OrderPanel [elevator.NUMBER_OF_FLOORS][elevator.NUMBER_OF_COLUMNS]int
-	//SingleElevatorInit()
-	//go RunSingleFSM()
+	SlaveFSMinit()
+	go SlaveFSM(&myElevator, MasterOrderPanel)
 
 	//network
-	id := NetworkConnect()
+	var id string
+	id = NetworkConnect(id)
 
 	peerUpdateCh := make(chan peers.PeerUpdate)
 	peerTxEnable := make(chan bool)
