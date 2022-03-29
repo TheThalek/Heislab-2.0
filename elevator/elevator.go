@@ -47,3 +47,27 @@ func (e *Elevator) SetObs(obs bool) {
 func (e *Elevator) SetID(ID string) {
 	e.id = ID
 }
+
+func (e *Elevator) DriveTo(order elevio.ButtonEvent) {
+
+	var elevDir elevio.MotorDirection
+	var motorDir elevio.MotorDirection
+
+	if e.GetCurrentFloor() < order.Floor {
+		motorDir = elevio.MD_Up
+		elevDir = motorDir
+	} else if e.GetCurrentFloor() > order.Floor {
+		motorDir = elevio.MD_Down
+		elevDir = motorDir
+	} else {
+		motorDir = elevio.MD_Stop
+		if order.Button == elevio.BT_HallUp {
+			elevDir = elevio.MD_Up
+		} else if order.Button == elevio.BT_HallDown {
+			elevDir = elevio.MD_Down
+		}
+	}
+
+	e.SetDirection(elevDir)
+	elevio.SetMotorDirection(motorDir)
+}
