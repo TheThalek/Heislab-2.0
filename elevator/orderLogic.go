@@ -1,13 +1,9 @@
 package main
 
-import "Driver-go/elevio"
-
-// case init
-// case master
-// case slave
-// receive reports
-
-//FUNC DOSTUFF(CHAN)
+import (
+	"Driver-go/elevio"
+	"strconv"
+)
 
 type SystemState int
 
@@ -20,13 +16,11 @@ const (
 
 func PederSinOrderLogicMain() {
 	var myElevator Elevator
-	var elevatorPeers []Elevator
-	elevatorPeers = append(elevatorPeers, myElevator)
 	var MasterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 
 	var sysState SystemState = Initialization
 
-	var completedOrders []elevio.ButtonEvent
+	var completeOrders []elevio.ButtonEvent
 	var newOrders []elevio.ButtonEvent
 	completeOrderChan := make(chan []elevio.ButtonEvent)
 	newOrderChan := make(chan elevio.ButtonEvent)
@@ -36,9 +30,12 @@ func PederSinOrderLogicMain() {
 	go LocalControl(&myElevator, MasterOrderPanel, completeOrderChan, newOrderChan)
 
 	//network
-
 	id := NetworkConnect()
 	elevIndex := id
+	myElevator.SetIndex(elevIndex)
+
+	var elevatorPeers [NUMBER_OF_ELEVATORS]Elevator
+	elevatorPeers[elevIndex] = myElevator
 
 	msgTx := make(chan NetworkMessage)
 	receivedMessages := make(chan NetworkMessage)
@@ -59,41 +56,73 @@ func PederSinOrderLogicMain() {
 			} else if role == MO_Slave {
 				sysState = Slave
 			}
-		case IDs := <-peersIDChan:
-			var newElevSlice []Elevator
-			for _, elevator := range elevatorPeers {
-				if isInSlice(elevator.GetID(), IDs) {
-					newElevSlice = append(newElevSlice, elevator)
-				}
-			}
-			elevatorPeers = newElevSlice
-
-		case idx := <-elevIndexChanRx:
-			elevIndex = idx
 
 		//RECEIVE FROM NETWORK
 		case msg := <-receivedMessages:
-			index := msg.ID
+			peerID, _ := strconv.Atoi(msg.ID)
 			if sysState == Master {
 				slaveInfo := ExtractSlaveInformation(msg)
+				elevatorPeers[peerID] = Elevator{
+					direction:    slaveInfo.direction,
+					currentFloor: slaveInfo.currentFloor,
+					obs:          slaveInfo.obs,
+					priOrder:     elevatorPeers[peerID].priOrder,
+					index:        peerID,
+				}
 				for _, ord := range slaveInfo.CompletedOrders {
-					SetOrder(MasterOrderPanel, ord, OT_NoOrder, index)
+					SetOrder(MasterOrderPanel, ord, OT_Completed, peerID)
 				}
 				for _, ord := range slaveInfo.NewOrders {
-					SetOrder(MasterOrderPanel, ord, OT_Order, index)
+					SetOrder(MasterOrderPanel, ord, OT_Order, peerID)
 				}
+
 			} else {
 				masterInfo := ExtractMasterInformation(msg)
+				MasterOrderPanel = masterInfo.OrderPanel
 
+				var compOrdersUpdate []elevio.ButtonEvent
+				for _, ord := range newOrders {
+					if GetOrder(MasterOrderPanel, ord, peerID) != OT_Completed {
+						compOrdersUpdate = append(compOrdersUpdate, ord)
+					}
+				}
+				var newOrdersUpdate []elevio.ButtonEvent
+				for _, ord := range newOrders {
+					if GetOrder(MasterOrderPanel, ord, peerID) != OT_Order {
+						newOrdersUpdate = append(newOrdersUpdate, ord)
+					}
+				}
+				myElevator.SetPriOrder(masterInfo.Priorities[peerID])
 			}
 
 		//SEND TO NETWORK
 		default:
+			elevatorPeers[elevIndex] = myElevator
 			switch sysState {
 			case Master:
-
+				elevatorPeers = PrioritizeOrders(MasterOrderPanel, elevatorPeers)
+				myElevator.SetPriOrder(elevatorPeers[elevIndex].GetPriOrder())
+				priSlice := [NUMBER_OF_ELEVATORS]RemoteOrder{}
+				for i := 0; i < len(priSlice); i++ {
+					priSlice[i] = RemoteOrder{
+						ID: i,
+						order: elevatorPeers[i].GetPriOrder()
+					}
+				}
+				masterInfo := MasterInformation{
+					OrderPanel: MasterOrderPanel
+					Priorities: priSlice
+				}
+				msgTx <- NewMasterMessage(strconv.Itoa(id), masterInfo)
 			case Slave:
-
+				slaveInfo := SlaveInformation{
+					direction: myElevator.GetDirection(),       
+					currentFloor: myElevator.GetCurrentFloor(),
+					obs: myElevator.GetObs(),
+					NewOrders: newOrders,
+					CompletedOrders: completeOrders,
+				}
+				msgTx <- NewSlaveMessage(strconv.Itoa(id), slaveInfo)
 			}
 		}
 	}

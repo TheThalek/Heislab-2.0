@@ -10,6 +10,7 @@ const (
 	OT_NoOrder    = 0
 	OT_Order      = 1
 	OT_InProgress = 2
+	OT_Completed  = 3
 )
 const (
 	//CT = CostType
@@ -105,7 +106,6 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 							MasterOrderPanel[oldOrder.Floor][oldOrder.Button] = OT_Order
 							MasterOrderPanel[order.Floor][order.Button] = OT_InProgress
 						}
-
 					}
 				}
 			}
@@ -113,6 +113,19 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 	}
 	//or return list of priority orders -->available elevators
 	return availableElevators
+}
+
+func GetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order elevio.ButtonEvent, indxe int) int {
+	var fl int = order.Floor
+	var bt int
+	if order.Button == elevio.BT_HallUp {
+		bt = 0
+	} else if order.Button == elevio.BT_HallDown {
+		bt = 1
+	} else {
+		bt = 2 + index
+	}
+	return MasterOrderPanel[fl][bt]
 }
 
 func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order elevio.ButtonEvent, OrderType int, index int) {

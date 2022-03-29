@@ -30,7 +30,7 @@ const (
 
 type NetworkMessage struct {
 	Origin        MessageOrigin
-	ID            int
+	ID            string
 	Content       string
 	MessageString string
 }
@@ -46,17 +46,17 @@ type SlaveInformation struct {
 	CompletedOrders []elevio.ButtonEvent
 }
 
-func newRemoteOrder(id int, order elevio.ButtonEvent) RemoteOrder {
+func newRemoteOrder(id string, order elevio.ButtonEvent) RemoteOrder {
 	return RemoteOrder{ID: id, order: order}
 }
-func newNetworkMessage(origin MessageOrigin, id int, content string) NetworkMessage {
+func newNetworkMessage(origin MessageOrigin, id string, content string) NetworkMessage {
 	return NetworkMessage{Origin: origin, ID: id, Content: content, MessageString: string(origin) + DELIM + id + DELIM + content}
 }
-func NewMasterMessage(id int, info MasterInformation) NetworkMessage {
+func NewMasterMessage(id string, info MasterInformation) NetworkMessage {
 	infoString := fmt.Sprint(info.OrderPanel) + DELIM + fmt.Sprint(info.Priorities)
 	return newNetworkMessage(MO_Master, id, infoString)
 }
-func NewSlaveMessage(id int, info SlaveInformation) NetworkMessage {
+func NewSlaveMessage(id string, info SlaveInformation) NetworkMessage {
 	return newNetworkMessage(MO_Slave, id, strconv.Itoa(info.currentFloor)+DELIM+fmt.Sprint(info.direction)+DELIM+strconv.FormatBool(info.obs)+DELIM+fmt.Sprint(info.CompletedOrders)+DELIM+fmt.Sprint(info.NewOrders))
 }
 
