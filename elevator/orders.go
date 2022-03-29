@@ -5,6 +5,7 @@ import (
 	//"time"
 )
 
+
 const (
 	//OT = OrderType
 	OT_NoOrder    = 0
@@ -16,8 +17,9 @@ const (
 	CT_DistanceCost        = 10
 	CT_DirSwitchCost       = 100
 	CT_DoubleDirSwitchCost = 1000
-	CT_ObsCost             = 10000
+	CT_ObsCost = 10000
 )
+
 
 func intAbs(x int) int {
 	if x < 0 {
@@ -63,54 +65,56 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	} else {
 		cost += CT_DistanceCost * intAbs(orderFloor-elevFloor)
 	}
-	elevObstruct := elevator.GetObs()
-	if elevObstruct {
+	elevObstruct:= elevator.GetObs()
+	if elevObstruct{
 		cost += CT_ObsCost
 	}
-
+	
 	return cost
 }
 
-func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, availableElevators [NUMBER_OF_ELEVATORS]Elevator) [NUMBER_OF_ELEVATORS]Elevator {
+
+
+func PrioritizeOrders(MasterOrderPanel * [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, availableElevators [NUMBER_OF_ELEVATORS] Elevator )[NUMBER_OF_ELEVATORS] Elevator{
 	//decide which elevator is the best to do an order
-	//Need direction for each elevator
+	//Need direction for each elevator 
 	//for each elevator calculate the best order it should take
-	//Hvilken ordre er best for hver heis, og hvilken heis er best for ordren.
+	//Hvilken ordre er best for hver heis, og hvilken heis er best for ordren. 
 	//Avaialble elevators assumed sorted. so that elevator 1 comes first in the range, and
-	for elvIndex, elevator := range availableElevators {
-		oldOrderCost := calculateOrderCost(elevator.GetPriOrder(), elevator)
-		oldOrder := elevator.GetPriOrder()
-		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
-			var btnColumns = []int{0, 1, elvIndex + 2} //Check for the columns: Up, Down, and the given elevator
-			for _, btn := range btnColumns {
-				if MasterOrderPanel[floor][btn] == OT_Order {
+	for elvIndex, elevator := range availableElevators{
+		oldOrderCost:= calculateOrderCost(elevator.GetPriOrder(), elevator)
+		oldOrder:= elevator.GetPriOrder()
+		for floor:= 0; floor < NUMBER_OF_FLOORS; floor ++{
+			var btnColumns= []int{0,1,elvIndex+2} //Check for the columns: Up, Down, and the given elevator
+			for _, btn := range btnColumns{
+				if MasterOrderPanel[floor][btn] == OT_Order{
 					order := elevio.ButtonEvent{
-						Floor:  floor,
+						Floor: floor,
 						Button: elevio.ButtonType(btn),
 					}
-					var orderCost int = calculateOrderCost(order, elevator)
-					if orderCost < oldOrderCost {
+					var orderCost int = calculateOrderCost(order,elevator)
+					if orderCost < oldOrderCost{
 						var lowestCostAllElevators int = orderCost
-						if btn != elvIndex+2 { //if the btn pushed is not a cab-call, compare with the other elevators
-							for _, elv := range availableElevators {
+						if btn != elvIndex+2{ //if the btn pushed is not a cab-call, compare with the other elevators
+							for _, elv:= range availableElevators{
 								cmprCost := calculateOrderCost(order, elv)
-								if cmprCost < orderCost {
+								if cmprCost < orderCost{
 									lowestCostAllElevators = cmprCost
 									break
 								}
 							}
 						}
-						if orderCost == lowestCostAllElevators {
+						if orderCost == lowestCostAllElevators{
 							elevator.SetPriOrder(order)
 							MasterOrderPanel[oldOrder.Floor][oldOrder.Button] = OT_Order
 							MasterOrderPanel[order.Floor][order.Button] = OT_InProgress
-						}
+						} 
 
 					}
 				}
-			}
-
-		}
+			} 
+			
+		} 
 
 	}
 	//or return list of priority orders -->available elevators
@@ -118,36 +122,26 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 
 }
 
-func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order elevio.ButtonEvent, orderType int, elevIndex int) {
-	var fl int = order.Floor
-	var bt int
-	if order.Button == elevio.BT_HallUp {
-		fl = 0
-	} else if order.Button == elevio.BT_HallDown {
-		fl = 1
-	} else {
-		fl = 2 + elevIndex
-	}
-	MasterOrderPanel[fl][bt] = orderType
-}
+
 
 //Make a function that get's the timeout message, and then sets and order back to OT_order
 
-func TimeOutElevatorOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, lostElevator Elevator) {
-	lostOrder := lostElevator.GetPriOrder()
-	if lostOrder.Button != elevio.BT_Cab {
+func TimeOutElevatorOrder(MasterOrderPanel * [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, lostElevator Elevator){
+	lostOrder := lostElevator.GetPriOrder() 
+	if lostOrder.Button != elevio.BT_Cab{
 		MasterOrderPanel[lostOrder.Floor][lostOrder.Button] = OT_Order
 	}
 }
 
+
 //Set an order back to complete when it's been done, or if it's d
 //
-func CompletedOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, completeElevator Elevator) {
+func CompletedOrder(MasterOrderPanel * [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, completeElevator Elevator){
 	completeOrder := completeElevator.GetPriOrder()
 	MasterOrderPanel[completeOrder.Floor][completeOrder.Button] = OT_NoOrder
 }
 
-func maikenSinMain() {
+func maikenSinMain(){
 	//Test av Orders funksjoner
 	var elevator_1 Elevator
 	elevator_1.direction = 1
@@ -163,6 +157,11 @@ func maikenSinMain() {
 	elevator_2.priOrder.Floor = 1
 	elevator_2.priOrder.Button = 1
 
-	//Testing scenario:
+	//Testing scenario: 
+
+
 
 }
+
+
+

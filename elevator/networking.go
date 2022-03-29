@@ -194,7 +194,7 @@ func NetworkConnect(id string) string {
 	return id
 }
 
-func RunNetworkInterface(msgTx <-chan NetworkMessage, receivedMessages chan<- NetworkMessage, roleChan chan<- string, peersIDchan chan<- []string, idxChan chan<- int) {
+func RunNetworkInterface(msgTx <-chan NetworkMessage, receivedMessages chan<- NetworkMessage, roleChan chan<- string) {
 	var id string
 	flag.StringVar(&id, "id", "", "id of this peer")
 	flag.Parse()
@@ -226,13 +226,6 @@ func RunNetworkInterface(msgTx <-chan NetworkMessage, receivedMessages chan<- Ne
 			fmt.Println("  Peers:    \n", networkPeers)
 			fmt.Println("  New:      \n", p.New)
 			fmt.Println("  Lost:     \n", p.Lost)
-			peersIDchan <- networkPeers
-			for index, peerId := range networkPeers {
-				if peerId == id {
-					idxChan <- index
-					break
-				}
-			}
 		case a := <-msgRx:
 			b := StringToNetworkMsg(a.MessageString)
 			if b.Origin == MO_Master && len(networkPeers) > 1 {
@@ -250,7 +243,7 @@ func RunNetworkInterface(msgTx <-chan NetworkMessage, receivedMessages chan<- Ne
 	}
 }
 
-func PederSinNetworkMain() {
+func PederSinMain() {
 	// Our id can be anything. Here we pass it on the command line, using
 	//  `go run main.go -id=our_id`
 	var id string
