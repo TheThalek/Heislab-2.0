@@ -194,7 +194,7 @@ func NetworkConnect(id string) string {
 	return id
 }
 
-func RunNetworkInterface(msgTx <-chan NetworkMessage, receivedMessages chan<- NetworkMessage, roleChan chan<- string) {
+func RunNetworkInterface(msgTx <-chan NetworkMessage, receivedMessages chan<- NetworkMessage, roleChan chan<- string, idxChan chan<- int) {
 	var id string
 	flag.StringVar(&id, "id", "", "id of this peer")
 	flag.Parse()
@@ -226,6 +226,12 @@ func RunNetworkInterface(msgTx <-chan NetworkMessage, receivedMessages chan<- Ne
 			fmt.Println("  Peers:    \n", networkPeers)
 			fmt.Println("  New:      \n", p.New)
 			fmt.Println("  Lost:     \n", p.Lost)
+			for index, peerId := range networkPeers {
+				if peerId == id {
+					idxChan <- index
+					break
+				}
+			}
 		case a := <-msgRx:
 			b := StringToNetworkMsg(a.MessageString)
 			if b.Origin == MO_Master && len(networkPeers) > 1 {
