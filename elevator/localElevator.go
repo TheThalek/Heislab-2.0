@@ -79,11 +79,17 @@ func pollPriOrder(priOrder chan elevio.ButtonEvent, myElevator *Elevator) {
 
 func test(myElevator *Elevator) {
 	time.Sleep(5 * time.Second)
-	testPri1 := elevio.ButtonEvent{
-		Floor:  1,
-		Button: elevio.ButtonType(0),
+	for {
+		testPri1 := elevio.ButtonEvent{
+			Floor:  1,
+			Button: elevio.ButtonType(0),
+		}
+		myElevator.SetPriOrder(testPri1)
+
+		if myElevator.GetCurrentFloor() == myElevator.GetPriOrder().Floor {
+			break
+		}
 	}
-	myElevator.SetPriOrder(testPri1)
 
 	time.Sleep(15 * time.Second)
 	testPri2 := elevio.ButtonEvent{
@@ -247,10 +253,11 @@ func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMB
 			myElevator.SetObs(ObstrEvent)
 			if ObstrEvent && !moving {
 				doorOpen = true
-				elevio.SetDoorOpenLamp(doorOpen)
 			} else {
 				doorOpen = false
+				time.Sleep(3 * time.Second)
 			}
+			elevio.SetDoorOpenLamp(doorOpen)
 
 		case stopEvent := <-drv_stop:
 			fmt.Println(stopEvent)
