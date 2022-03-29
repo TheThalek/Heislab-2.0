@@ -30,7 +30,7 @@ const (
 
 type NetworkMessage struct {
 	Origin        MessageOrigin
-	ID            string
+	ID            int
 	Content       string
 	MessageString string
 }
@@ -46,17 +46,17 @@ type SlaveInformation struct {
 	CompletedOrders []elevio.ButtonEvent
 }
 
-func newRemoteOrder(id string, order elevio.ButtonEvent) RemoteOrder {
+func newRemoteOrder(id int, order elevio.ButtonEvent) RemoteOrder {
 	return RemoteOrder{ID: id, order: order}
 }
-func newNetworkMessage(origin MessageOrigin, id string, content string) NetworkMessage {
+func newNetworkMessage(origin MessageOrigin, id int, content string) NetworkMessage {
 	return NetworkMessage{Origin: origin, ID: id, Content: content, MessageString: string(origin) + DELIM + id + DELIM + content}
 }
-func NewMasterMessage(id string, info MasterInformation) NetworkMessage {
+func NewMasterMessage(id int, info MasterInformation) NetworkMessage {
 	infoString := fmt.Sprint(info.OrderPanel) + DELIM + fmt.Sprint(info.Priorities)
 	return newNetworkMessage(MO_Master, id, infoString)
 }
-func NewSlaveMessage(id string, info SlaveInformation) NetworkMessage {
+func NewSlaveMessage(id int, info SlaveInformation) NetworkMessage {
 	return newNetworkMessage(MO_Slave, id, strconv.Itoa(info.currentFloor)+DELIM+fmt.Sprint(info.direction)+DELIM+strconv.FormatBool(info.obs)+DELIM+fmt.Sprint(info.CompletedOrders)+DELIM+fmt.Sprint(info.NewOrders))
 }
 
@@ -137,40 +137,44 @@ func ReportMasterTimeOut(masterTimeOutChan chan<- string, reset <-chan string) {
 	}
 }
 
-func NetworkSortPeers(peers []string) []string {
+func SortNetworkPeers(peers []string) []int {
 
-	var sortedPeers []string = []string{peers[0]}
-
-	if len(peers) == 1 {
-		return sortedPeers
+	var sortedPeers []string = []int{}
+	for _, s := range peers {
+		integer, _ := strconv.Atoi(s)
+		sortedPeers = append(sortedPeers, integer)
 	}
 
-	for i := 1; i < len(peers); i++ {
-		val, _ := strconv.Atoi(strings.Split(peers[i], "-")[2])
-		j := 0
-		for {
-			cmp, _ := strconv.Atoi(strings.Split(peers[j], "-")[2])
-			if val < cmp || j+1 == len(sortedPeers) {
-				j = j + 1
-				break
-			}
-			j = j + 1
-		}
-		var temp []string
-		if j == 0 {
-			temp = []string{peers[i]}
-			temp = append(temp, sortedPeers...)
-		} else if j == len(sortedPeers)-1 {
-			temp = sortedPeers
-			temp = append(temp, peers[i])
-		} else {
-			temp = sortedPeers[:j]
-			temp = append(temp, "0")
-			temp = append(temp, sortedPeers[j:]...)
-			temp[j] = peers[i]
-		}
-		sortedPeers = temp
-	}
+	// if len(peers) == 1 {
+	// 	return sortedPeers
+	// }
+
+	// for i := 1; i < len(peers); i++ {
+	// 	val, _ := strconv.Atoi(strings.Split(peers[i], "-")[2])
+	// 	j := 0
+	// 	for {
+	// 		cmp, _ := strconv.Atoi(strings.Split(peers[j], "-")[2])
+	// 		if val < cmp || j+1 == len(sortedPeers) {
+	// 			j = j + 1
+	// 			break
+	// 		}
+	// 		j = j + 1
+	// 	}
+	// 	var temp []string
+	// 	if j == 0 {
+	// 		temp = []string{peers[i]}
+	// 		temp = append(temp, sortedPeers...)
+	// 	} else if j == len(sortedPeers)-1 {
+	// 		temp = sortedPeers
+	// 		temp = append(temp, peers[i])
+	// 	} else {
+	// 		temp = sortedPeers[:j]
+	// 		temp = append(temp, "0")
+	// 		temp = append(temp, sortedPeers[j:]...)
+	// 		temp[j] = peers[i]
+	// 	}
+	// 	sortedPeers = temp
+	// }
 	return sortedPeers
 }
 
@@ -182,7 +186,10 @@ var nOrders []elevio.ButtonEvent = []elevio.ButtonEvent{
 }
 var cOrders []elevio.ButtonEvent = nOrders
 
-func NetworkConnect(id string) string {
+func NetworkConnect() int {
+	var id string
+	flag.StringVar(&id, "id", "", "id of this peer")
+	flag.Parse()
 	if id == "" {
 		localIP, err := localip.LocalIP()
 		if err != nil {
@@ -191,16 +198,13 @@ func NetworkConnect(id string) string {
 		}
 		id = fmt.Sprintf("peer-%s-%d", localIP, os.Getpid())
 	}
-	return id
+	index, _ := strconv.Atoi(id)
+	return index
 }
 
-func RunNetworkInterface(msgTx <-chan NetworkMessage, receivedMessages chan<- NetworkMessage, roleChan chan<- string) {
-	var id string
-	flag.StringVar(&id, "id", "", "id of this peer")
-	flag.Parse()
-	id = NetworkConnect(id)
-
-	var networkPeers []string
+func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages chan<- NetworkMessage, roleChan chan<- string) {
+	
+	var networkPeers []int
 	networkPeers = append(networkPeers, id)
 
 	peerUpdateCh := make(chan peers.PeerUpdate)
@@ -218,10 +222,9 @@ func RunNetworkInterface(msgTx <-chan NetworkMessage, receivedMessages chan<- Ne
 
 	fmt.Println("Started")
 	for {
-		id = NetworkConnect("")
 		select {
 		case p := <-peerUpdateCh:
-			networkPeers = NetworkSortPeers(p.Peers)
+			networkPeers = SortNetworkPeers(p.Peers)
 			fmt.Println("Peer update: ")
 			fmt.Println("  Peers:    \n", networkPeers)
 			fmt.Println("  New:      \n", p.New)

@@ -26,34 +26,25 @@ func PederSinOrderLogicMain() {
 
 	var sysState SystemState = Initialization
 
-	var elevIndex int
-
 	var completedOrders []elevio.ButtonEvent
 	var newOrders []elevio.ButtonEvent
 	completeOrderChan := make(chan []elevio.ButtonEvent)
 	newOrderChan := make(chan elevio.ButtonEvent)
 
-	elevIndexChanTx := make(chan int)
-	elevIndexChanRx := make(chan int)
-	peersIDChan := make(chan []string)
-
-	go func() {
-		elevIndexChanTx <- elevIndex
-	}()
 	//hardware
 	LocalInit()
-	go LocalControl(&myElevator, MasterOrderPanel, completeOrderChan, newOrderChan, elevIndexChanTx)
+	go LocalControl(&myElevator, MasterOrderPanel, completeOrderChan, newOrderChan)
 
 	//network
-	var id string
 
-	id = NetworkConnect("")
+	id := NetworkConnect()
+	elevIndex := id
 
 	msgTx := make(chan NetworkMessage)
 	receivedMessages := make(chan NetworkMessage)
 	roleChan := make(chan string)
 
-	go RunNetworkInterface(msgTx, receivedMessages, roleChan, peersIDChan, elevIndexChanRx)
+	go RunNetworkInterface(id, msgTx, receivedMessages, roleChan)
 
 	sysState = Slave
 	for {
@@ -86,10 +77,10 @@ func PederSinOrderLogicMain() {
 			if sysState == Master {
 				slaveInfo := ExtractSlaveInformation(msg)
 				for _, ord := range slaveInfo.CompletedOrders {
-					SetOrder(MasterOrderPanel, ord, OT_NoOrder, INDEX)
+					SetOrder(MasterOrderPanel, ord, OT_NoOrder, index)
 				}
 				for _, ord := range slaveInfo.NewOrders {
-					SetOrder(MasterOrderPanel, ord, OT_Order, INDEX)
+					SetOrder(MasterOrderPanel, ord, OT_Order, index)
 				}
 			} else {
 				masterInfo := ExtractMasterInformation(msg)
