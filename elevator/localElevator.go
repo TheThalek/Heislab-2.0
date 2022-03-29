@@ -45,8 +45,34 @@ func LocalInit() {
 	}
 }
 
-//MAIKEN HOPPER INN FOR DENNE:
-func setLights(masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, elevIndex int) {
+//Go-rutine, constantly polling lights and switching them based on the order matrix. Will not set it if it's in progress.
+func setLights(masterOrderPanel[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, elevatorID string){
+	elevatorIndx = GetElevatorIndex(elevatorID)
+	for floor:= 0; floor < NUMBER_OF_FLOORS; floor ++{
+		var btnColumns = []int{0,1,elevatorIndx+2}
+		for _, btn := range btnColumns{
+			if MasterOrderPanel[floor][btn] == OT_NoOrder{
+				elevio.SetButtonLamp(btn,floor,false)
+			}else if MasterOrderPanel[floor][btn] == OT_Order{
+				elevio.SetButtonLamp(btn,floor,true)
+			}
+		}
+	} 
+	elevio.SetButtonLamp(button, floor, on/off)
+
+	
+
+}
+//Do we need to turn all the lights off at some point? to clear it all
+// func resetAllLights(){
+// 	for floor:=0; floor< NUMBER_OF_FLOORS; floor ++{
+// 		elevio.SetButtonLamp(elevio.BT_Cab,floor,false)
+// 		for btn:= 0; btn < NUMBER_OF_BUTTONS; btn ++ {
+// 			elevio.SetButtonLamp(btn,floor,false)
+// 		}
+// 	}
+// }
+func setLightsDemoThale(masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, elevIndex int) {
 	fmt.Println("B4 SetLights")
 	for f := 0; f < NUMBER_OF_FLOORS; f++ {
 		for b := 0; b < 3; b++ {
@@ -59,7 +85,7 @@ func setLights(masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, elevIn
 	}
 }
 
-//THALE JOBBER M RESTEN
+
 func pollPriFloor(priOrder chan elevio.ButtonEvent, myElevator *Elevator) {
 	for {
 		priOrder <- myElevator.GetPriOrder()
