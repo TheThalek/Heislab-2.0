@@ -69,13 +69,20 @@ func PederSinOrderLogicMain() {
 				sysState = Slave
 			}
 		case IDs := <-peersIDChan:
+			var newElevSlice []Elevator
+			for _, elevator := range elevatorPeers {
+				if isInSlice(elevator.GetID(), IDs) {
+					newElevSlice = append(newElevSlice, elevator)
+				}
+			}
+			elevatorPeers = newElevSlice
 
 		case idx := <-elevIndexChanRx:
 			elevIndex = idx
 
 		//RECEIVE FROM NETWORK
 		case msg := <-receivedMessages:
-			INDEX
+			index := 
 			if sysState == Master {
 				slaveInfo := ExtractSlaveInformation(msg)
 				for _, ord := range slaveInfo.CompletedOrders {

@@ -319,6 +319,15 @@ func PederSinNetworkMain() {
 	}
 }
 
+func isInSlice(str string, stringSlice []string) bool {
+	for _, s := stringSlice {
+		if s == str {
+			return true
+		}
+	}
+	return false
+}
+
 func stringToIntArray(S string, m int, n int) [][]int {
 	A := make([][]int, m)
 	for i := range A {
