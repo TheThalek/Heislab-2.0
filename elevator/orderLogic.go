@@ -1,5 +1,7 @@
 package main
 
+import "Driver-go/elevio"
+
 // case init
 // case master
 // case slave
@@ -24,36 +26,70 @@ func PederSinOrderLogicMain() {
 
 	var sysState SystemState = Initialization
 
+	var elevIndex int
+
+	var completedOrders []elevio.ButtonEvent
+	var newOrders []elevio.ButtonEvent
+	completeOrderChan := make(chan []elevio.ButtonEvent)
+	newOrderChan := make(chan elevio.ButtonEvent)
+
+	elevIndexChanTx := make(chan int)
+	elevIndexChanRx := make(chan int)
+	peersIDChan := make(chan []string)
+
+	go func() {
+		elevIndexChanTx <- elevIndex
+	}()
 	//hardware
+	LocalInit()
+	go LocalControl(&myElevator, MasterOrderPanel, completeOrderChan, newOrderChan, elevIndexChanTx)
+
 	//network
 	var id string
-	var elevIndex int
+
 	id = NetworkConnect("")
 
 	msgTx := make(chan NetworkMessage)
 	receivedMessages := make(chan NetworkMessage)
 	roleChan := make(chan string)
-	elevIndexChan := make(chan int)
 
-	sysState = Connect
-	go RunNetworkInterface(msgTx, receivedMessages, roleChan, elevIndexChan)
+	go RunNetworkInterface(msgTx, receivedMessages, roleChan, peersIDChan, elevIndexChanRx)
+
+	sysState = Slave
 	for {
 		select {
-		case msg := <-receivedMessages:
-			if sysState == Master {
-				slaveInfo := ExtractSlaveInformation(msg)
-			} else {
-				masterInfo := ExtractMasterInformation(msg)
-			}
+		case cOrds := <-completeOrderChan:
+			completedOrders = append(completedOrders, cOrds...)
+		case nOrds := <-newOrderChan:
+			newOrders = append(newOrders, nOrds...)
 		case role := <-roleChan:
 			if role == MO_Master {
 				sysState = Master
 			} else if role == MO_Slave {
 				sysState = Slave
 			}
+		case IDs := <-peersIDChan:
 
-		case idx := <-indeelevIndexChan:
+		case idx := <-elevIndexChanRx:
 			elevIndex = idx
+
+		//RECEIVE FROM NETWORK
+		case msg := <-receivedMessages:
+			INDEX
+			if sysState == Master {
+				slaveInfo := ExtractSlaveInformation(msg)
+				for _, ord := range slaveInfo.CompletedOrders {
+					SetOrder(MasterOrderPanel, ord, OT_NoOrder, INDEX)
+				}
+				for _, ord := range slaveInfo.NewOrders {
+					SetOrder(MasterOrderPanel, ord, OT_Order, INDEX)
+				}
+			} else {
+				masterInfo := ExtractMasterInformation(msg)
+
+			}
+
+		//SEND TO NETWORK
 		default:
 			switch sysState {
 			case Master:
