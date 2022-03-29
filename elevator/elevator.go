@@ -14,7 +14,7 @@ type Elevator struct {
 	currentFloor int
 	obs          bool
 	priOrder     elevio.ButtonEvent
-	id           string
+	index        string
 }
 
 func (e *Elevator) GetDirection() elevio.MotorDirection {
@@ -29,8 +29,8 @@ func (e *Elevator) GetPriOrder() elevio.ButtonEvent {
 func (e *Elevator) GetObs() bool {
 	return e.obs
 }
-func (e *Elevator) GetID() string {
-	return e.id
+func (e *Elevator) GetIndex() string {
+	return e.index
 }
 func (e *Elevator) SetFloor(floor int) {
 	e.currentFloor = floor
@@ -44,8 +44,8 @@ func (e *Elevator) SetPriOrder(priOrder elevio.ButtonEvent) {
 func (e *Elevator) SetObs(obs bool) {
 	e.obs = obs
 }
-func (e *Elevator) SetID(ID string) {
-	e.id = ID
+func (e *Elevator) SetIndex(index string) {
+	e.index = index
 }
 
 func (e *Elevator) DriveTo(order elevio.ButtonEvent) {
