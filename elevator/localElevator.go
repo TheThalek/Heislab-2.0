@@ -20,16 +20,16 @@ func ThaleSinMain() {
 	ElevIndexChan := make(chan int)
 	takenOrdersChan := make(chan []elevio.ButtonEvent)
 	newOrdersChan := make(chan elevio.ButtonEvent)
-
+	go FloorIntTest(ElevIndexChan)
 	go LocalControl(&myElevator, masterOrderPanel, takenOrdersChan, newOrdersChan, ElevIndexChan)
 	for {
 		select {
-		case t := <-takenOrdersChan:
-			fmt.Println(t)
-		case t := <-newOrdersChan:
-			fmt.Println(t)
-		case t := <-ElevIndexChan:
-			fmt.Println(t)
+		case <-takenOrdersChan:
+
+		case <-newOrdersChan:
+
+		case <-ElevIndexChan:
+
 		default:
 		}
 	}
@@ -47,9 +47,9 @@ func LocalInit() {
 	}
 }
 
-func setLights(masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, elevIndex chan int) {
+func setLights(masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, elevIndexChan chan int) {
 	for {
-		elevatorIndx := <-elevIndex
+		elevatorIndx := <-elevIndexChan
 		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
 			var btnColumns = []int{0, 1, elevatorIndx + 2}
 			for _, btn := range btnColumns {
@@ -64,29 +64,28 @@ func setLights(masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, elevIn
 }
 
 func pollPriOrder(priOrder chan elevio.ButtonEvent, myElevator *Elevator) {
-	var oldOrder elevio.ButtonEvent = myElevator.GetPriOrder()
 	for {
-		newOrder := myElevator.GetPriOrder()
-		if newOrder != oldOrder {
-			oldOrder = newOrder
-			priOrder <- newOrder
-		}
+		priOrder <- myElevator.GetPriOrder()
 	}
+	// var oldOrder elevio.ButtonEvent = myElevator.GetPriOrder()
+	// for {
+	// 	newOrder := myElevator.GetPriOrder()
+	// 	if newOrder != oldOrder {
+	// 		oldOrder = newOrder
+	// 		priOrder <- newOrder
+	// 	}
+	// }
 }
 
 func test(myElevator *Elevator) {
-	fmt.Println("before 5 sec 1 ")
 	time.Sleep(5 * time.Second)
-	fmt.Println("after 5 sec 1")
 	testPri1 := elevio.ButtonEvent{
 		Floor:  1,
 		Button: elevio.ButtonType(0),
 	}
 	myElevator.SetPriOrder(testPri1)
 
-	fmt.Println("before 5 sec 2")
 	time.Sleep(15 * time.Second)
-	fmt.Println("after 5 sec 2")
 	testPri2 := elevio.ButtonEvent{
 		Floor:  3,
 		Button: elevio.ButtonType(0),
@@ -94,21 +93,26 @@ func test(myElevator *Elevator) {
 	myElevator.SetPriOrder(testPri2)
 }
 
-func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, takenOrders chan []elevio.ButtonEvent, newOrders chan elevio.ButtonEvent, elevIndex chan int) {
+func FloorIntTest(elevIndex chan int) {
+	for {
+		elevIndex <- 0
+	}
+}
+
+func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, takenOrders chan []elevio.ButtonEvent, newOrders chan elevio.ButtonEvent, elevIndexChan chan int) {
 
 	elevio.SetMotorDirection(elevio.MD_Down)
 
 	var doorOpen bool = false
 	var moving bool = true
-	var obs bool = false
-	myElevator.SetObs(obs)
+	myElevator.SetObs(false)
 
 	//Kanskje legg inn i myElevator
 	var priorityOrder elevio.ButtonEvent
 	priorityOrder.Floor = -1
 	myElevator.SetPriOrder(priorityOrder)
 
-	go setLights(masterOrderPanel, elevIndex) //TO DO; ha med en "polingsfunksjon" i main
+	go setLights(masterOrderPanel, elevIndexChan) //TO DO; ha med en "polingsfunksjon" i main
 
 	drv_stop := make(chan bool)
 	drv_buttons := make(chan elevio.ButtonEvent)
@@ -131,21 +135,20 @@ func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMB
 		select {
 		case currentOrder := <-priOrderChan:
 
-			myElevator.SetPriOrder(currentOrder)
-			if myElevator.GetPriOrder().Floor != myElevator.GetCurrentFloor() && myElevator.GetPriOrder().Floor != -1 {
+			if currentOrder.Floor != myElevator.GetCurrentFloor() && currentOrder.Floor != -1 {
 				//stop moving
 				moving = true
 				//fmt.Println("floor >> moving")
 			}
-			if !doorOpen && myElevator.GetPriOrder().Floor != -1 {
+			if !doorOpen && currentOrder.Floor != -1 {
 				//drive to the order
-				if myElevator.GetCurrentFloor() != myElevator.GetPriOrder().Floor {
-					myElevator.DriveTo(myElevator.GetPriOrder())
+				if myElevator.GetCurrentFloor() != currentOrder.Floor {
+					myElevator.DriveTo(currentOrder)
 				}
-				if !moving && myElevator.GetPriOrder().Floor == myElevator.GetCurrentFloor() {
-					if myElevator.GetPriOrder().Button == elevio.BT_HallUp {
+				if !moving && currentOrder.Floor == myElevator.GetCurrentFloor() {
+					if currentOrder.Button == elevio.BT_HallUp {
 						myElevator.SetDirection(elevio.MD_Up)
-					} else if myElevator.GetPriOrder().Button == elevio.BT_HallDown {
+					} else if currentOrder.Button == elevio.BT_HallDown {
 						myElevator.SetDirection(elevio.MD_Down)
 					}
 					// create button event corresponding to current elev state
@@ -159,15 +162,20 @@ func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMB
 						event.Button = elevio.BT_HallDown
 					}
 					//open doors
+					fmt.Println("159: Order Reached")
+
 					doorOpen = true
 					elevio.SetDoorOpenLamp(doorOpen)
 					//fmt.Println("pri >> door open")
 					//timer
 					time.Sleep(3 * time.Second)
+
 					//clear the orders
 					var newFloor = myElevator.GetCurrentFloor()
 					var completedOrders []elevio.ButtonEvent
-					if masterOrderPanel[newFloor][<-elevIndex+2] != OT_NoOrder {
+					fmt.Println("So far so good")
+
+					if masterOrderPanel[newFloor][<-elevIndexChan+2] != OT_NoOrder {
 						cabOrder := elevio.ButtonEvent{
 							Floor:  newFloor,
 							Button: elevio.ButtonType(2),
@@ -187,6 +195,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMB
 						}
 						completedOrders = append(completedOrders, dirOrder)
 					}
+
 					takenOrders <- completedOrders
 
 					//set priority to an invalid order
@@ -194,7 +203,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMB
 					priorityOrder.Floor = -1
 					myElevator.SetPriOrder(priorityOrder)
 					//open door
-					if !obs {
+					if !myElevator.GetObs() {
 						doorOpen = false
 						elevio.SetDoorOpenLamp(doorOpen)
 					}
@@ -234,6 +243,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMB
 			}
 
 		case ObstrEvent := <-drv_obstr:
+			fmt.Println(ObstrEvent)
 			myElevator.SetObs(ObstrEvent)
 			if ObstrEvent && !moving {
 				doorOpen = true
