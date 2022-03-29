@@ -47,13 +47,13 @@ func PederSinOrderLogicMain() {
 	for {
 		select {
 		case cOrds := <-completeOrderChan:
-			completedOrders = append(completedOrders, cOrds...)
+			completeOrders = append(completeOrders, cOrds...)
 		case nOrds := <-newOrderChan:
-			newOrders = append(newOrders, nOrds...)
+			newOrders = append(newOrders, nOrds)
 		case role := <-roleChan:
-			if role == MO_Master {
+			if role == "Master" {
 				sysState = Master
-			} else if role == MO_Slave {
+			} else if role == "Slave" {
 				sysState = Slave
 			}
 
@@ -70,14 +70,14 @@ func PederSinOrderLogicMain() {
 					index:        peerID,
 				}
 				for _, ord := range slaveInfo.CompletedOrders {
-					SetOrder(MasterOrderPanel, ord, OT_Completed, peerID)
+					SetOrder(&MasterOrderPanel, ord, OT_Completed, peerID)
 				}
 				for _, ord := range slaveInfo.NewOrders {
-					SetOrder(MasterOrderPanel, ord, OT_Order, peerID)
+					SetOrder(&MasterOrderPanel, ord, OT_Order, peerID)
 				}
 
 			} else {
-				masterInfo := ExtractMasterInformation(msg)
+				masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_BUTTONS, NUMBER_OF_ELEVATORS)
 				MasterOrderPanel = masterInfo.OrderPanel
 
 				var compOrdersUpdate []elevio.ButtonEvent
@@ -92,7 +92,7 @@ func PederSinOrderLogicMain() {
 						newOrdersUpdate = append(newOrdersUpdate, ord)
 					}
 				}
-				myElevator.SetPriOrder(masterInfo.Priorities[peerID])
+				myElevator.SetPriOrder(masterInfo.Priorities[peerID].order)
 			}
 
 		//SEND TO NETWORK
@@ -100,26 +100,26 @@ func PederSinOrderLogicMain() {
 			elevatorPeers[elevIndex] = myElevator
 			switch sysState {
 			case Master:
-				elevatorPeers = PrioritizeOrders(MasterOrderPanel, elevatorPeers)
+				elevatorPeers = PrioritizeOrders(&MasterOrderPanel, elevatorPeers)
 				myElevator.SetPriOrder(elevatorPeers[elevIndex].GetPriOrder())
 				priSlice := [NUMBER_OF_ELEVATORS]RemoteOrder{}
 				for i := 0; i < len(priSlice); i++ {
 					priSlice[i] = RemoteOrder{
-						ID: i,
-						order: elevatorPeers[i].GetPriOrder()
+						ID:    strconv.Itoa(i),
+						order: elevatorPeers[i].GetPriOrder(),
 					}
 				}
 				masterInfo := MasterInformation{
-					OrderPanel: MasterOrderPanel
-					Priorities: priSlice
+					OrderPanel: MasterOrderPanel,
+					Priorities: priSlice,
 				}
 				msgTx <- NewMasterMessage(strconv.Itoa(id), masterInfo)
 			case Slave:
 				slaveInfo := SlaveInformation{
-					direction: myElevator.GetDirection(),       
-					currentFloor: myElevator.GetCurrentFloor(),
-					obs: myElevator.GetObs(),
-					NewOrders: newOrders,
+					direction:       myElevator.GetDirection(),
+					currentFloor:    myElevator.GetCurrentFloor(),
+					obs:             myElevator.GetObs(),
+					NewOrders:       newOrders,
 					CompletedOrders: completeOrders,
 				}
 				msgTx <- NewSlaveMessage(strconv.Itoa(id), slaveInfo)

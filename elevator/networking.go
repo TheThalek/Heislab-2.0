@@ -139,7 +139,7 @@ func ReportMasterTimeOut(masterTimeOutChan chan<- string, reset <-chan string) {
 
 func SortNetworkPeers(peers []string) []int {
 
-	var sortedPeers []string = []int{}
+	var sortedPeers []int = []int{}
 	for _, s := range peers {
 		integer, _ := strconv.Atoi(s)
 		sortedPeers = append(sortedPeers, integer)
@@ -178,14 +178,6 @@ func SortNetworkPeers(peers []string) []int {
 	return sortedPeers
 }
 
-var orderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
-var priorityOrders [NUMBER_OF_ELEVATORS]RemoteOrder = [NUMBER_OF_ELEVATORS]RemoteOrder{newRemoteOrder("peer--1", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp}), newRemoteOrder("2", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp}), newRemoteOrder("3", elevio.ButtonEvent{Floor: 3, Button: elevio.BT_HallUp})}
-var nOrders []elevio.ButtonEvent = []elevio.ButtonEvent{
-	{Floor: 3, Button: elevio.BT_Cab},
-	{Floor: 1, Button: elevio.BT_HallDown},
-}
-var cOrders []elevio.ButtonEvent = nOrders
-
 func NetworkConnect() int {
 	var id string
 	flag.StringVar(&id, "id", "", "id of this peer")
@@ -203,13 +195,13 @@ func NetworkConnect() int {
 }
 
 func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages chan<- NetworkMessage, roleChan chan<- string) {
-	
+
 	var networkPeers []int
 	networkPeers = append(networkPeers, id)
 
 	peerUpdateCh := make(chan peers.PeerUpdate)
 	peerTxEnable := make(chan bool)
-	go peers.Transmitter(15647, id, peerTxEnable)
+	go peers.Transmitter(15647, strconv.Itoa(id), peerTxEnable)
 	go peers.Receiver(15647, peerUpdateCh)
 
 	msgRx := make(chan NetworkMessage)
@@ -246,83 +238,83 @@ func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages c
 	}
 }
 
-func PederSinMain() {
-	// Our id can be anything. Here we pass it on the command line, using
-	//  `go run main.go -id=our_id`
-	var id string
+// func PederSinMain() {
+// 	// Our id can be anything. Here we pass it on the command line, using
+// 	//  `go run main.go -id=our_id`
+// 	var id string
 
-	var networkPeers []string
-	networkPeers = append(networkPeers, id)
+// 	var networkPeers []string
+// 	networkPeers = append(networkPeers, id)
 
-	flag.StringVar(&id, "id", "", "id of this peer")
-	flag.Parse()
-	id = NetworkConnect(id)
+// 	flag.StringVar(&id, "id", "", "id of this peer")
+// 	flag.Parse()
+// 	id = NetworkConnect(id)
 
-	peerUpdateCh := make(chan peers.PeerUpdate)
-	peerTxEnable := make(chan bool)
-	go peers.Transmitter(15647, id, peerTxEnable)
-	go peers.Receiver(15647, peerUpdateCh)
+// 	peerUpdateCh := make(chan peers.PeerUpdate)
+// 	peerTxEnable := make(chan bool)
+// 	go peers.Transmitter(15647, id, peerTxEnable)
+// 	go peers.Receiver(15647, peerUpdateCh)
 
-	msgTx := make(chan NetworkMessage)
-	msgRx := make(chan NetworkMessage)
-	go bcast.Transmitter(16569, msgTx)
-	go bcast.Receiver(16569, msgRx)
+// 	msgTx := make(chan NetworkMessage)
+// 	msgRx := make(chan NetworkMessage)
+// 	go bcast.Transmitter(16569, msgTx)
+// 	go bcast.Receiver(16569, msgRx)
 
-	mTimeout := make(chan string)
-	resetMasterTimeOut := make(chan string)
-	go ReportMasterTimeOut(mTimeout, resetMasterTimeOut)
+// 	mTimeout := make(chan string)
+// 	resetMasterTimeOut := make(chan string)
+// 	go ReportMasterTimeOut(mTimeout, resetMasterTimeOut)
 
-	state := 0 //slave
-	go func() {
-		for {
-			switch state {
-			case 0:
-				fmt.Println(id, "is Slave:")
-				msgTx <- NewSlaveMessage(id, SlaveInformation{direction: elevio.MD_Up, currentFloor: 2, obs: false, NewOrders: nOrders, CompletedOrders: cOrders})
+// 	state := 0 //slave
+// 	go func() {
+// 		for {
+// 			switch state {
+// 			case 0:
+// 				fmt.Println(id, "is Slave:")
+// 				msgTx <- NewSlaveMessage(id, SlaveInformation{direction: elevio.MD_Up, currentFloor: 2, obs: false, NewOrders: nOrders, CompletedOrders: cOrders})
 
-			case 1:
-				fmt.Println(id, "is Master:")
-				msgTx <- NewMasterMessage(id, MasterInformation{OrderPanel: orderPanel, Priorities: priorityOrders})
-			}
-			time.Sleep(PERIOD)
-		}
-	}()
+// 			case 1:
+// 				fmt.Println(id, "is Master:")
+// 				msgTx <- NewMasterMessage(id, MasterInformation{OrderPanel: orderPanel, Priorities: priorityOrders})
+// 			}
+// 			time.Sleep(PERIOD)
+// 		}
+// 	}()
 
-	fmt.Println("Started")
-	for {
-		id = NetworkConnect("")
-		select {
-		case p := <-peerUpdateCh:
-			networkPeers = NetworkSortPeers(p.Peers)
-			fmt.Println("Peer update: ")
-			fmt.Println("  Peers:    %q\n", networkPeers)
-			fmt.Println("  New:      %q\n", p.New)
-			fmt.Println("  Lost:     %q\n", p.Lost)
+// 	fmt.Println("Started")
+// 	for {
+// 		id = NetworkConnect("")
+// 		select {
+// 		case p := <-peerUpdateCh:
+// 			networkPeers = SortNetworkPeers(p.Peers)
+// 			fmt.Println("Peer update: ")
+// 			fmt.Println("  Peers:    %q\n", networkPeers)
+// 			fmt.Println("  New:      %q\n", p.New)
+// 			fmt.Println("  Lost:     %q\n", p.Lost)
 
-		case a := <-msgRx:
-			b := StringToNetworkMsg(a.MessageString)
-			if b.Origin == MO_Master && len(networkPeers) > 1 {
-				resetMasterTimeOut <- "reset"
-			} else if len(networkPeers) == 1 {
-				state = 0
-			}
-		case <-mTimeout:
-			fmt.Println(id, ">> Master Timeout")
-			if id == networkPeers[0] {
-				state = 1
-			}
-		}
-	}
-}
+// 		case a := <-msgRx:
+// 			b := StringToNetworkMsg(a.MessageString)
+// 			if b.Origin == MO_Master && len(networkPeers) > 1 {
+// 				resetMasterTimeOut <- "reset"
+// 			} else if len(networkPeers) == 1 {
+// 				state = 0
+// 			}
+// 		case <-mTimeout:
+// 			fmt.Println(id, ">> Master Timeout")
+// 			if id == networkPeers[0] {
+// 				state = 1
+// 			}
+// 		}
+// 	}
+// }
 
-func isInSlice(str string, stringSlice []string) bool {
-	for _, s := stringSlice {
-		if s == str {
-			return true
-		}
-	}
-	return false
-}
+// func isInSlice(str string, stringSlice []string) bool {
+// 	for _, s := range stringSlice {
+// 		if s == str {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
 
 func stringToIntArray(S string, m int, n int) [][]int {
 	A := make([][]int, m)
