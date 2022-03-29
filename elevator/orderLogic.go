@@ -1,9 +1,6 @@
 package main
 
-import (
-	"Network-go/network/bcast"
-	"Network-go/network/peers"
-)
+import "Driver-go/elevio"
 
 // case init
 // case master
@@ -21,37 +18,44 @@ const (
 	Master                     = 3
 )
 
-var networkPeers []string
+func PederSinOrderLogicMain() {
+	var myElevator Elevator
+	var elevatorPeers []Elevator
+	elevatorPeers = append(elevatorPeers, myElevator)
+	var MasterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 
-var myElevator Elevator
-var MasterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
-
-func RunSystemFSM() {
 	var sysState SystemState = Initialization
+
+	var elevIndex int
+
+	var completedOrders []elevio.ButtonEvent
+	var newOrders []elevio.ButtonEvent
+	completeOrderChan := make(chan []elevio.ButtonEvent)
+	newOrderChan := make(chan elevio.ButtonEvent)
+
+	elevIndexChanTx := make(chan int)
+	elevIndexChanRx := make(chan int)
+	peersIDChan := make(chan []string)
+
+	go func() {
+		elevIndexChanTx <- elevIndex
+	}()
 	//hardware
-	SlaveFSMinit()
-	go SlaveFSM(&myElevator, MasterOrderPanel)
+	LocalInit()
+	go LocalControl(&myElevator, MasterOrderPanel, completeOrderChan, newOrderChan, elevIndexChanTx)
 
 	//network
 	var id string
-	id = NetworkConnect(id)
 
-	peerUpdateCh := make(chan peers.PeerUpdate)
-	peerTxEnable := make(chan bool)
+	id = NetworkConnect("")
 
 	msgTx := make(chan NetworkMessage)
-	msgRx := make(chan NetworkMessage)
+	receivedMessages := make(chan NetworkMessage)
+	roleChan := make(chan string)
 
-	go bcast.Transmitter(16569, msgTx)
-	go bcast.Receiver(16569, msgRx)
-	go peers.Transmitter(15647, id, peerTxEnable)
-	go peers.Receiver(15647, peerUpdateCh)
+	go RunNetworkInterface(msgTx, receivedMessages, roleChan, peersIDChan, elevIndexChanRx)
 
-	mTimeout := make(chan string)
-	resetMasterTimeOut := make(chan string)
-	go ReportMasterTimeOut(mTimeout, resetMasterTimeOut)
-
-	sysState = Connect
+	sysState = Slave
 	for {
 		select {
 		case cOrds := <-completeOrderChan:
@@ -78,45 +82,28 @@ func RunSystemFSM() {
 
 		//RECEIVE FROM NETWORK
 		case msg := <-receivedMessages:
-			index := 
+			index := msg.ID
 			if sysState == Master {
 				slaveInfo := ExtractSlaveInformation(msg)
 				for _, ord := range slaveInfo.CompletedOrders {
 					SetOrder(MasterOrderPanel, ord, OT_NoOrder, INDEX)
 				}
-				if id == NetworkSortPeers(networkPeers)[0] {
-					sysState = Master
-					//msgTx <- network.NewMasterMessage(id,)
-				} else {
-					sysState = Slave
-					//msgTx <- network.NewMasterMessage(id,)
+				for _, ord := range slaveInfo.NewOrders {
+					SetOrder(MasterOrderPanel, ord, OT_Order, INDEX)
 				}
-
-			case Slave:
-				if NetworkSortPeers(networkPeers)[0] == id {
-					sysState = Master
-				}
-			case Master:
-				resetMasterTimeOut <- "Reset"
+			} else {
+				masterInfo := ExtractMasterInformation(msg)
 
 			}
-		case <-msgRx:
+
+		//SEND TO NETWORK
+		default:
 			switch sysState {
-			case Connect:
+			case Master:
 
 			case Slave:
 
-			case Master:
-				resetMasterTimeOut <- "Timeout"
-
 			}
-
-		case <-mTimeout:
-			resetMasterTimeOut <- "Timeout"
 		}
 	}
-}
-
-func orderlogicOrders() {
-	//ser bare på tilkobling til orders-modulen
 }
