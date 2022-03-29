@@ -17,18 +17,17 @@ func ThaleSinMain() {
 	}
 	myElevator.SetPriOrder(startPri)
 
-	ElevIndexChan := make(chan int)
+	myElevator.SetIndex(0)
+
 	takenOrdersChan := make(chan []elevio.ButtonEvent)
 	newOrdersChan := make(chan elevio.ButtonEvent)
-	go FloorIntTest(ElevIndexChan)
-	go LocalControl(&myElevator, masterOrderPanel, takenOrdersChan, newOrdersChan, ElevIndexChan)
+
+	go LocalControl(&myElevator, masterOrderPanel, takenOrdersChan, newOrdersChan)
 	for {
 		select {
 		case <-takenOrdersChan:
 
 		case <-newOrdersChan:
-
-		case <-ElevIndexChan:
 
 		default:
 		}
@@ -47,11 +46,10 @@ func LocalInit() {
 	}
 }
 
-func setLights(masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, elevIndexChan chan int) {
+func setLights(masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myElevator *Elevator) {
 	for {
-		elevatorIndx := <-elevIndexChan
 		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
-			var btnColumns = []int{0, 1, elevatorIndx + 2}
+			var btnColumns = []int{0, 1, myElevator.GetIndex() + 2}
 			for _, btn := range btnColumns {
 				if masterOrderPanel[floor][btn] == OT_NoOrder {
 					elevio.SetButtonLamp(elevio.ButtonType(btn), floor, false)
@@ -99,13 +97,7 @@ func test(myElevator *Elevator) {
 	myElevator.SetPriOrder(testPri2)
 }
 
-func FloorIntTest(elevIndex chan int) {
-	for {
-		elevIndex <- 0
-	}
-}
-
-func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, takenOrders chan []elevio.ButtonEvent, newOrders chan elevio.ButtonEvent, elevIndexChan chan int) {
+func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, takenOrders chan []elevio.ButtonEvent, newOrders chan elevio.ButtonEvent) {
 
 	elevio.SetMotorDirection(elevio.MD_Down)
 
@@ -118,7 +110,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMB
 	priorityOrder.Floor = -1
 	myElevator.SetPriOrder(priorityOrder)
 
-	go setLights(masterOrderPanel, elevIndexChan) //TO DO; ha med en "polingsfunksjon" i main
+	go setLights(masterOrderPanel, myElevator)
 
 	drv_stop := make(chan bool)
 	drv_buttons := make(chan elevio.ButtonEvent)
@@ -174,14 +166,14 @@ func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMB
 					elevio.SetDoorOpenLamp(doorOpen)
 					//fmt.Println("pri >> door open")
 					//timer
-					time.Sleep(3 * time.Second)
+					time.Sleep(1500 * time.Millisecond)
 
 					//clear the orders
 					var newFloor = myElevator.GetCurrentFloor()
 					var completedOrders []elevio.ButtonEvent
 					fmt.Println("So far so good")
 
-					if masterOrderPanel[newFloor][<-elevIndexChan+2] != OT_NoOrder {
+					if masterOrderPanel[newFloor][myElevator.GetIndex()+2] != OT_NoOrder {
 						cabOrder := elevio.ButtonEvent{
 							Floor:  newFloor,
 							Button: elevio.ButtonType(2),
