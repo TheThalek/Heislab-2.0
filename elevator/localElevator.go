@@ -45,7 +45,7 @@ func LocalInit() {
 	}
 }
 
-//MAIKEN HOPPER INN FOR DENNE:
+//MAIKEN HOPPER INN FOR DENNE: enda en gang
 func setLights(masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, elevIndex int) {
 	fmt.Println("B4 SetLights")
 	for f := 0; f < NUMBER_OF_FLOORS; f++ {
