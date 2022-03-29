@@ -22,7 +22,7 @@ func ThaleSinMain() {
 	takenOrdersChan := make(chan []elevio.ButtonEvent)
 	newOrdersChan := make(chan elevio.ButtonEvent)
 
-	go LocalControl(&myElevator, masterOrderPanel, takenOrdersChan, newOrdersChan)
+	go LocalControl(&myElevator, &masterOrderPanel, takenOrdersChan, newOrdersChan)
 	for {
 		select {
 		case <-takenOrdersChan:
@@ -46,24 +46,41 @@ func LocalInit() {
 	}
 }
 
-func setLights(masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myElevator *Elevator) {
+func setLights(masterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myElevator *Elevator) {
 	for {
 		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
 			var btnColumns = []int{0, 1, myElevator.GetIndex() + 2}
 			for _, btn := range btnColumns {
+				// if masterOrderPanel[floor][btn] == OT_NoOrder {
+				// 	elevio.SetButtonLamp(elevio.ButtonType(btn), floor, false)
+				// } else if masterOrderPanel[floor][btn] == OT_Order {
+				// 	elevio.SetButtonLamp(elevio.ButtonType(btn), floor, true)
+				// }
+				var lightValue bool
 				if masterOrderPanel[floor][btn] == OT_NoOrder {
-					elevio.SetButtonLamp(elevio.ButtonType(btn), floor, false)
-				} else if masterOrderPanel[floor][btn] == OT_Order {
-					elevio.SetButtonLamp(elevio.ButtonType(btn), floor, true)
+					lightValue = false
+				} else {
+					lightValue = true
 				}
+				var btnType elevio.ButtonType
+				if btn == 0 {
+					btnType = elevio.BT_HallUp
+				} else if btn == 1 {
+					btnType = elevio.BT_HallDown
+				} else {
+					btnType = elevio.BT_Cab
+				}
+				elevio.SetButtonLamp(btnType, floor, lightValue)
 			}
 		}
+		time.Sleep(PERIOD)
 	}
 }
 
 func pollPriOrder(priOrder chan elevio.ButtonEvent, myElevator *Elevator) {
 	for {
 		priOrder <- myElevator.GetPriOrder()
+		time.Sleep(PERIOD)
 	}
 	// var oldOrder elevio.ButtonEvent = myElevator.GetPriOrder()
 	// for {
@@ -87,6 +104,7 @@ func test(myElevator *Elevator) {
 		if myElevator.GetCurrentFloor() == myElevator.GetPriOrder().Floor {
 			break
 		}
+		time.Sleep(PERIOD)
 	}
 
 	time.Sleep(15 * time.Second)
@@ -97,7 +115,7 @@ func test(myElevator *Elevator) {
 	myElevator.SetPriOrder(testPri2)
 }
 
-func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, takenOrders chan []elevio.ButtonEvent, newOrders chan elevio.ButtonEvent) {
+func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, takenOrders chan []elevio.ButtonEvent, newOrders chan elevio.ButtonEvent) {
 
 	elevio.SetMotorDirection(elevio.MD_Down)
 
@@ -118,8 +136,8 @@ func LocalControl(myElevator *Elevator, masterOrderPanel [NUMBER_OF_FLOORS][NUMB
 	drv_obstr := make(chan bool)
 	priOrderChan := make(chan elevio.ButtonEvent)
 
-	//TEST
-	go test(myElevator)
+	// //TEST
+	// go test(myElevator)
 
 	go elevio.PollButtons(drv_buttons)
 	go elevio.PollFloorSensor(drv_floors)

@@ -2,7 +2,9 @@ package main
 
 import (
 	"Driver-go/elevio"
+	"fmt"
 	"strconv"
+	"time"
 )
 
 type SystemState int
@@ -27,7 +29,7 @@ func PederSinOrderLogicMain() {
 
 	//hardware
 	LocalInit()
-	go LocalControl(&myElevator, MasterOrderPanel, completeOrderChan, newOrderChan)
+	go LocalControl(&myElevator, &MasterOrderPanel, completeOrderChan, newOrderChan)
 
 	//network
 	id := NetworkConnect()
@@ -60,7 +62,10 @@ func PederSinOrderLogicMain() {
 		//RECEIVE FROM NETWORK
 		case msg := <-receivedMessages:
 			peerID, _ := strconv.Atoi(msg.ID)
-			if sysState == Master {
+			if peerID != id {
+				fmt.Println("We recieved the message: ", msg)
+			}
+			if sysState == Master && msg.Origin == MO_Slave {
 				slaveInfo := ExtractSlaveInformation(msg)
 				elevatorPeers[peerID] = Elevator{
 					direction:    slaveInfo.direction,
@@ -76,7 +81,7 @@ func PederSinOrderLogicMain() {
 					SetOrder(&MasterOrderPanel, ord, OT_Order, peerID)
 				}
 
-			} else {
+			} else if sysState == Slave && msg.Origin == MO_Master {
 				masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_BUTTONS, NUMBER_OF_ELEVATORS)
 				MasterOrderPanel = masterInfo.OrderPanel
 
@@ -124,6 +129,7 @@ func PederSinOrderLogicMain() {
 				}
 				msgTx <- NewSlaveMessage(strconv.Itoa(id), slaveInfo)
 			}
+			time.Sleep(PERIOD)
 		}
 	}
 }

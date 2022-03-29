@@ -14,7 +14,7 @@ import (
 )
 
 const DELIM = "//"
-const PERIOD = 1 * time.Second
+const PERIOD = 500 * time.Millisecond
 
 type RemoteOrder struct {
 	ID    string
@@ -234,6 +234,8 @@ func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages c
 			if id == networkPeers[0] {
 				roleChan <- string(MO_Master)
 			}
+		default:
+			time.Sleep(PERIOD)
 		}
 	}
 }
