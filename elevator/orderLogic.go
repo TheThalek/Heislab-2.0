@@ -44,7 +44,7 @@ func PederSinOrderLogicMain() {
 	roleChan := make(chan string)
 	peerChan := make(chan []int)
 
-	go RunNetworkInterface(id, msgTx, receivedMessages, roleChan, lostChan)
+	go RunNetworkInterface(id, msgTx, receivedMessages, roleChan, peerChan)
 
 	sysState = Slave
 	for {
@@ -62,9 +62,9 @@ func PederSinOrderLogicMain() {
 		case onlinePeers := <-peerChan:
 			for i := 0; i < NUMBER_OF_ELEVATORS; i++ {
 				if isInSliceInt(i, onlinePeers) {
-					onlinePeers[i].SetOnline(true)
+					elevatorPeers[i].SetOnline(true)
 				} else {
-					onlinePeers[i].SetOnline(false)
+					elevatorPeers[i].SetOnline(false)
 				}
 			}
 			if len(onlinePeers) == 1 {
@@ -117,7 +117,12 @@ func PederSinOrderLogicMain() {
 			elevatorPeers[elevIndex] = myElevator
 			switch sysState {
 			case Master:
-				elevatorPeers = PrioritizeOrders(&MasterOrderPanel, elevatorPeers)
+				//------------------------PEDER------------------------------
+				var available []Elevator
+				for _, elev := range elevatorPeers {
+
+				}
+				elevatorPeers = PrioritizeOrders(&MasterOrderPanel, &elevatorPeers)
 				myElevator.SetPriOrder(elevatorPeers[elevIndex].GetPriOrder())
 				priSlice := [NUMBER_OF_ELEVATORS]RemoteOrder{}
 				for i := 0; i < len(priSlice); i++ {
@@ -130,8 +135,13 @@ func PederSinOrderLogicMain() {
 					OrderPanel: MasterOrderPanel,
 					Priorities: priSlice,
 				}
+				//-----------------------------------------------
+				//-----------------------THALE-------------------
+
+				//-----------------------------------------------
 				msgTx <- NewMasterMessage(strconv.Itoa(id), masterInfo)
 			case Slave:
+				//---------------------MAIKEN------------------------
 				slaveInfo := SlaveInformation{
 					direction:       myElevator.GetDirection(),
 					currentFloor:    myElevator.GetCurrentFloor(),
@@ -140,6 +150,7 @@ func PederSinOrderLogicMain() {
 					CompletedOrders: completeOrders,
 				}
 				msgTx <- NewSlaveMessage(strconv.Itoa(id), slaveInfo)
+				//---------------------------------------------------
 			}
 			time.Sleep(PERIOD)
 		}
