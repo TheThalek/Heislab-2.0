@@ -194,7 +194,7 @@ func NetworkConnect() int {
 	return index
 }
 
-func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages chan<- NetworkMessage, roleChan chan<- string) {
+func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages chan<- NetworkMessage, roleChan chan<- string, peerChan chan<- []int) {
 
 	var networkPeers []int
 	networkPeers = append(networkPeers, id)
@@ -221,6 +221,9 @@ func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages c
 			fmt.Println("  Peers:    \n", networkPeers)
 			fmt.Println("  New:      \n", p.New)
 			fmt.Println("  Lost:     \n", p.Lost)
+			if len(p.Lost) > 0 {
+				peerChan <- networkPeers
+			}
 		case a := <-msgRx:
 			b := StringToNetworkMsg(a.MessageString)
 			if b.Origin == MO_Master && len(networkPeers) > 1 {
@@ -309,14 +312,23 @@ func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages c
 // 	}
 // }
 
-// func isInSlice(str string, stringSlice []string) bool {
-// 	for _, s := range stringSlice {
-// 		if s == str {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }
+func isInSlice(str string, stringSlice []string) bool {
+	for _, s := range stringSlice {
+		if s == str {
+			return true
+		}
+	}
+	return false
+}
+
+func isInSliceInt(i int, intSlice []int) bool {
+	for _, j := range intSlice {
+		if j == i {
+			return true
+		}
+	}
+	return false
+}
 
 func stringToIntArray(S string, m int, n int) [][]int {
 	A := make([][]int, m)

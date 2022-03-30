@@ -36,14 +36,15 @@ func PederSinOrderLogicMain() {
 	elevIndex := id
 	myElevator.SetIndex(elevIndex)
 
-	var elevatorPeers [NUMBER_OF_ELEVATORS]Elevator
+	var elevatorPeers *[NUMBER_OF_ELEVATORS]Elevator
 	elevatorPeers[elevIndex] = myElevator
 
 	msgTx := make(chan NetworkMessage)
 	receivedMessages := make(chan NetworkMessage)
 	roleChan := make(chan string)
+	peerChan := make(chan []int)
 
-	go RunNetworkInterface(id, msgTx, receivedMessages, roleChan)
+	go RunNetworkInterface(id, msgTx, receivedMessages, roleChan, lostChan)
 
 	sysState = Slave
 	for {
@@ -57,6 +58,17 @@ func PederSinOrderLogicMain() {
 				sysState = Master
 			} else if role == "Slave" {
 				sysState = Slave
+			}
+		case onlinePeers := <-peerChan:
+			for i := 0; i < NUMBER_OF_ELEVATORS; i++ {
+				if isInSliceInt(i, onlinePeers) {
+					onlinePeers[i].SetOnline(true)
+				} else {
+					onlinePeers[i].SetOnline(false)
+				}
+			}
+			if len(onlinePeers) == 1 {
+				myElevator.SetOnline(false)
 			}
 
 		//RECEIVE FROM NETWORK

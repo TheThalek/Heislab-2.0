@@ -15,6 +15,7 @@ type Elevator struct {
 	obs          bool
 	priOrder     elevio.ButtonEvent
 	index        int
+	online       bool
 }
 
 func (e *Elevator) GetDirection() elevio.MotorDirection {
@@ -32,6 +33,9 @@ func (e *Elevator) GetObs() bool {
 func (e *Elevator) GetIndex() int {
 	return e.index
 }
+func (e *Elevator) GetOnline() bool {
+	return e.online
+}
 func (e *Elevator) SetFloor(floor int) {
 	e.currentFloor = floor
 }
@@ -46,6 +50,9 @@ func (e *Elevator) SetObs(obs bool) {
 }
 func (e *Elevator) SetIndex(index int) {
 	e.index = index
+}
+func (e *Elevator) SetOnline(online bool) {
+	e.online = online
 }
 
 func (e *Elevator) DriveTo(order elevio.ButtonEvent) {
