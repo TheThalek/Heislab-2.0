@@ -36,7 +36,6 @@ func ThaleSinMain() {
 
 func LocalInit() {
 	elevio.Init("localhost:15657", NUMBER_OF_FLOORS)
-	//elevio.SetMotorDirection(elevio.MD_Down)
 	elevio.SetDoorOpenLamp(false)
 
 	for f := 0; f < NUMBER_OF_FLOORS; f++ {
@@ -51,11 +50,6 @@ func setLights(masterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myEle
 		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
 			var btnColumns = []int{0, 1, myElevator.GetIndex() + 2}
 			for _, btn := range btnColumns {
-				// if masterOrderPanel[floor][btn] == OT_NoOrder {
-				// 	elevio.SetButtonLamp(elevio.ButtonType(btn), floor, false)
-				// } else if masterOrderPanel[floor][btn] == OT_Order {
-				// 	elevio.SetButtonLamp(elevio.ButtonType(btn), floor, true)
-				// }
 				var lightValue bool
 				if masterOrderPanel[floor][btn] == OT_NoOrder {
 					lightValue = false
@@ -82,14 +76,6 @@ func pollPriOrder(priOrder chan elevio.ButtonEvent, myElevator *Elevator) {
 		priOrder <- myElevator.GetPriOrder()
 		time.Sleep(PERIOD)
 	}
-	// var oldOrder elevio.ButtonEvent = myElevator.GetPriOrder()
-	// for {
-	// 	newOrder := myElevator.GetPriOrder()
-	// 	if newOrder != oldOrder {
-	// 		oldOrder = newOrder
-	// 		priOrder <- newOrder
-	// 	}
-	// }
 }
 
 func test(myElevator *Elevator) {
@@ -123,7 +109,6 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 	var moving bool = true
 	myElevator.SetObs(false)
 
-	//Kanskje legg inn i myElevator
 	var priorityOrder elevio.ButtonEvent
 	priorityOrder.Floor = -1
 	myElevator.SetPriOrder(priorityOrder)
@@ -137,7 +122,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 	priOrderChan := make(chan elevio.ButtonEvent)
 
 	// //TEST
-	// go test(myElevator)
+	go test(myElevator)
 
 	go elevio.PollButtons(drv_buttons)
 	go elevio.PollFloorSensor(drv_floors)
@@ -147,14 +132,11 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 	go pollPriOrder(priOrderChan, myElevator)
 
 	for {
-		//OPPDATER ELLER DOBBELTSJEKK AT priorityOrder blir oppdatert
 		select {
 		case currentOrder := <-priOrderChan:
 
 			if currentOrder.Floor != myElevator.GetCurrentFloor() && currentOrder.Floor != -1 {
-				//stop moving
 				moving = true
-				//fmt.Println("floor >> moving")
 			}
 			if !doorOpen && currentOrder.Floor != -1 {
 				//drive to the order
@@ -178,18 +160,15 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 						event.Button = elevio.BT_HallDown
 					}
 					//open doors
-					fmt.Println("159: Order Reached")
 
 					doorOpen = true
 					elevio.SetDoorOpenLamp(doorOpen)
-					//fmt.Println("pri >> door open")
 					//timer
 					time.Sleep(1500 * time.Millisecond)
 
 					//clear the orders
 					var newFloor = myElevator.GetCurrentFloor()
 					var completedOrders []elevio.ButtonEvent
-					fmt.Println("So far so good")
 
 					if masterOrderPanel[newFloor][myElevator.GetIndex()+2] != OT_NoOrder {
 						cabOrder := elevio.ButtonEvent{
@@ -228,9 +207,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 			}
 
 		case newBtnEvent := <-drv_buttons:
-			fmt.Println("drv_buttons")
 			newOrders <- newBtnEvent
-			fmt.Println("after drv_buttons")
 
 		case newFloor := <-drv_floors:
 			//update the floor
