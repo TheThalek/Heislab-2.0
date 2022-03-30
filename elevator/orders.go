@@ -72,7 +72,7 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	return cost
 }
 
-func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, availableElevators [NUMBER_OF_ELEVATORS]Elevator) [NUMBER_OF_ELEVATORS]Elevator {
+func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, availableElevators []Elevator) []Elevator {
 	//decide which elevator is the best to do an order
 	//Need direction for each elevator
 	//for each elevator calculate the best order it should take
