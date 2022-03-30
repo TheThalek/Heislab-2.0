@@ -2,6 +2,7 @@ package main
 
 import (
 	"Driver-go/elevio"
+	//"fmt"
 )
 
 const NUMBER_OF_FLOORS = 4
@@ -56,7 +57,6 @@ func (e *Elevator) SetOnline(online bool) {
 }
 
 func (e *Elevator) DriveTo(order elevio.ButtonEvent) {
-
 	var elevDir elevio.MotorDirection
 	var motorDir elevio.MotorDirection
 
