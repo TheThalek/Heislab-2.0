@@ -111,6 +111,7 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 						if orderCost == lowestCostAllElevators {
 							elevator.SetPriOrder(order)
 							fmt.Println("NewORDER:", order)
+
 							//fmt.Println(order)
 							//fmt.Println("OLD_ORDER:")
 							//fmt.Println(oldOrder)

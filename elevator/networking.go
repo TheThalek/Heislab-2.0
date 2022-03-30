@@ -233,7 +233,6 @@ func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages c
 			}
 			receivedMessages <- a
 		case <-mTimeout:
-			fmt.Println(id, ">> Master Timeout")
 			if id == networkPeers[0] {
 				roleChan <- string(MO_Master)
 			}
