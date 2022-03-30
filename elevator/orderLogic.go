@@ -118,6 +118,13 @@ func PederSinOrderLogicMain() {
 			switch sysState {
 			case Master:
 				//------------------------PEDER------------------------------
+				for _, ord := range completeOrders {
+					SetOrder(&MasterOrderPanel, ord, OT_Completed, peerID)
+				}
+				for _, ord := range newOrders {
+					SetOrder(&MasterOrderPanel, ord, OT_Order, peerID)
+				}
+				
 				var available []Elevator
 				for _, elev := range elevatorPeers {
 
