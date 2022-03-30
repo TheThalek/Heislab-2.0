@@ -123,10 +123,6 @@ func PederSinOrderLogicMain() {
 					if elev.
 				}
 				elevatorPeers = PrioritizeOrders(&MasterOrderPanel, &elevatorPeers)
-				//-----------------------------------------------
-				//-----------------------THALE-------------------
-
-				//-----------------------------------------------
 				myElevator.SetPriOrder(elevatorPeers[elevIndex].GetPriOrder())
 				priSlice := [NUMBER_OF_ELEVATORS]RemoteOrder{}
 				for i := 0; i < len(priSlice); i++ {
@@ -139,6 +135,10 @@ func PederSinOrderLogicMain() {
 					OrderPanel: MasterOrderPanel,
 					Priorities: priSlice,
 				}
+				//-----------------------------------------------
+				//-----------------------THALE-------------------
+
+				//-----------------------------------------------
 				msgTx <- NewMasterMessage(strconv.Itoa(id), masterInfo)
 			case Slave:
 				//---------------------MAIKEN------------------------
