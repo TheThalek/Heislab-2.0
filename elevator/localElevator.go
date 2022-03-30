@@ -6,33 +6,33 @@ import (
 	"time"
 )
 
-func ThaleSinMain() {
-	LocalInit()
-	var masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
+// func ThaleSinMain() {
+// 	LocalInit()
+// 	var masterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 
-	var myElevator Elevator
-	startPri := elevio.ButtonEvent{
-		Floor:  -1,
-		Button: elevio.ButtonType(0),
-	}
-	myElevator.SetPriOrder(startPri)
+// 	var myElevator Elevator
+// 	startPri := elevio.ButtonEvent{
+// 		Floor:  -1,
+// 		Button: elevio.ButtonType(0),
+// 	}
+// 	myElevator.SetPriOrder(startPri)
 
-	myElevator.SetIndex(0)
+// 	myElevator.SetIndex(0)
 
-	takenOrdersChan := make(chan []elevio.ButtonEvent)
-	newOrdersChan := make(chan elevio.ButtonEvent)
+// 	takenOrdersChan := make(chan []elevio.ButtonEvent)
+// 	newOrdersChan := make(chan elevio.ButtonEvent)
 
-	go LocalControl(&myElevator, &masterOrderPanel, takenOrdersChan, newOrdersChan)
-	for {
-		select {
-		case <-takenOrdersChan:
+// 	go LocalControl(&myElevator, &masterOrderPanel, takenOrdersChan, newOrdersChan)
+// 	for {
+// 		select {
+// 		case <-takenOrdersChan:
 
-		case <-newOrdersChan:
+// 		case <-newOrdersChan:
 
-		default:
-		}
-	}
-}
+// 		default:
+// 		}
+// 	}
+// }
 
 func LocalInit() {
 	elevio.Init("localhost:15657", NUMBER_OF_FLOORS)
@@ -122,7 +122,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 	priOrderChan := make(chan elevio.ButtonEvent)
 
 	// //TEST
-	go test(myElevator)
+	//go test(myElevator)
 
 	go elevio.PollButtons(drv_buttons)
 	go elevio.PollFloorSensor(drv_floors)
@@ -134,6 +134,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 	for {
 		select {
 		case currentOrder := <-priOrderChan:
+			//fmt.Println("currentOrder", currentOrder)
 
 			if currentOrder.Floor != myElevator.GetCurrentFloor() && currentOrder.Floor != -1 {
 				moving = true
@@ -142,6 +143,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 				//drive to the order
 				if myElevator.GetCurrentFloor() != currentOrder.Floor {
 					myElevator.DriveTo(currentOrder)
+					fmt.Println("Driving to:", currentOrder)
 				}
 				if !moving && currentOrder.Floor == myElevator.GetCurrentFloor() {
 					if currentOrder.Button == elevio.BT_HallUp {
@@ -190,7 +192,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 						}
 						completedOrders = append(completedOrders, dirOrder)
 					}
-
+					fmt.Println("CMPLT ORDERS:", completedOrders)
 					takenOrders <- completedOrders
 
 					//set priority to an invalid order
