@@ -122,7 +122,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 	priOrderChan := make(chan elevio.ButtonEvent)
 
 	// //TEST
-	go test(myElevator)
+	//go test(myElevator)
 
 	go elevio.PollButtons(drv_buttons)
 	go elevio.PollFloorSensor(drv_floors)

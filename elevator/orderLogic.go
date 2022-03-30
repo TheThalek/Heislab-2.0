@@ -116,17 +116,18 @@ func PederSinOrderLogicMain() {
 
 		//SEND TO NETWORK
 		default:
+			//fmt.Println(MasterOrderPanel)
 			elevatorPeers[elevIndex] = &myElevator
 			switch sysState {
 			case Master:
 				//------------------------PEDER------------------------------
 				for _, ord := range completeOrders {
-					SetOrder(&MasterOrderPanel, ord, OT_Completed, peerID)
+					SetOrder(&MasterOrderPanel, ord, OT_Completed, myElevator.GetIndex())
 				}
 				for _, ord := range newOrders {
-					SetOrder(&MasterOrderPanel, ord, OT_Order, peerID)
+					SetOrder(&MasterOrderPanel, ord, OT_Order, myElevator.GetIndex())
 				}
-				
+
 				var available []Elevator
 				for _, elev := range elevatorPeers {
 					if elev.GetOnline() == false {
@@ -165,10 +166,18 @@ func PederSinOrderLogicMain() {
 				}
 				msgTx <- NewSlaveMessage(strconv.Itoa(id), slaveInfo)
 				//If it's not online it needs to handle it's own prioritized order same as master
-				if myElevator.GetOnline() == false{
-					myElevatorlist = [myElevator]
+				if myElevator.GetOnline() == false {
+					for _, ord := range completeOrders {
+						SetOrder(&MasterOrderPanel, ord, OT_Completed, myElevator.GetIndex())
+					}
+					for _, ord := range newOrders {
+						SetOrder(&MasterOrderPanel, ord, OT_Order, myElevator.GetIndex())
+					}
+
+					var myElevatorlist []Elevator = []Elevator{myElevator}
 					myElevatorlist = PrioritizeOrders(&MasterOrderPanel, myElevatorlist)
-					myElevator=myElevatorlist[0]
+					myElevator = myElevatorlist[0]
+
 				}
 				//---------------------------------------------------
 			}

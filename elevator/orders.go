@@ -2,6 +2,7 @@ package main
 
 import (
 	"Driver-go/elevio"
+	"fmt"
 	//"time"
 )
 
@@ -86,9 +87,13 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 			var btnColumns = []int{0, 1, elvIndex + 2} //Check for the columns: Up, Down, and the given elevator
 			for _, btn := range btnColumns {
 				if MasterOrderPanel[floor][btn] == OT_Order {
+					var button int = btn
+					if btn > 1 {
+						button = 2
+					}
 					order := elevio.ButtonEvent{
 						Floor:  floor,
-						Button: elevio.ButtonType(btn),
+						Button: elevio.ButtonType(button),
 					}
 					var orderCost int = calculateOrderCost(order, elevator)
 					if orderCost < oldOrderCost {
@@ -104,8 +109,12 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 						}
 						if orderCost == lowestCostAllElevators {
 							elevator.SetPriOrder(order)
-							MasterOrderPanel[oldOrder.Floor][oldOrder.Button] = OT_Order
-							MasterOrderPanel[order.Floor][order.Button] = OT_InProgress
+							fmt.Println("ORDER:", order, "OLDORDER")
+							fmt.Println(order)
+							fmt.Println("OLD_ORDER:")
+							fmt.Println(oldOrder)
+							SetOrder(MasterOrderPanel, oldOrder, OT_Order, elevator.GetIndex())
+							SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
 						}
 					}
 				}
