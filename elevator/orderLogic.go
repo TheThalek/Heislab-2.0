@@ -164,6 +164,12 @@ func PederSinOrderLogicMain() {
 					CompletedOrders: completeOrders,
 				}
 				msgTx <- NewSlaveMessage(strconv.Itoa(id), slaveInfo)
+				//If it's not online it needs to handle it's own prioritized order same as master
+				if myElevator.GetOnline() == false{
+					myElevatorlist = [myElevator]
+					myElevatorlist = PrioritizeOrders(&MasterOrderPanel, myElevatorlist)
+					myElevator=myElevatorlist[0]
+				}
 				//---------------------------------------------------
 			}
 			time.Sleep(PERIOD)
