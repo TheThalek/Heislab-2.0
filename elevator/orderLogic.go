@@ -36,8 +36,9 @@ func PederSinOrderLogicMain() {
 	elevIndex := id
 	myElevator.SetIndex(elevIndex)
 
-	var elevatorPeers *[NUMBER_OF_ELEVATORS]Elevator
-	elevatorPeers[elevIndex] = myElevator
+	var elevatorPeers [NUMBER_OF_ELEVATORS]*Elevator
+
+	elevatorPeers[elevIndex] = &myElevator
 
 	msgTx := make(chan NetworkMessage)
 	receivedMessages := make(chan NetworkMessage)
@@ -79,13 +80,14 @@ func PederSinOrderLogicMain() {
 			}
 			if sysState == Master && msg.Origin == MO_Slave {
 				slaveInfo := ExtractSlaveInformation(msg)
-				elevatorPeers[peerID] = Elevator{
+				newElev := Elevator{
 					direction:    slaveInfo.direction,
 					currentFloor: slaveInfo.currentFloor,
 					obs:          slaveInfo.obs,
 					priOrder:     elevatorPeers[peerID].priOrder,
 					index:        peerID,
 				}
+				elevatorPeers[peerID] = &newElev
 				for _, ord := range slaveInfo.CompletedOrders {
 					SetOrder(&MasterOrderPanel, ord, OT_Completed, peerID)
 				}
@@ -114,15 +116,20 @@ func PederSinOrderLogicMain() {
 
 		//SEND TO NETWORK
 		default:
-			elevatorPeers[elevIndex] = myElevator
+			elevatorPeers[elevIndex] = &myElevator
 			switch sysState {
 			case Master:
 				//------------------------PEDER------------------------------
 				var available []Elevator
 				for _, elev := range elevatorPeers {
-					if elev.
+					if elev.GetOnline() == false {
+						available = append(available, *elev)
+					}
 				}
-				elevatorPeers = PrioritizeOrders(&MasterOrderPanel, &elevatorPeers)
+				available = PrioritizeOrders(&MasterOrderPanel, available)
+				for _, elev := range available {
+					elevatorPeers[elev.GetIndex()].SetPriOrder(elev.GetPriOrder())
+				}
 				myElevator.SetPriOrder(elevatorPeers[elevIndex].GetPriOrder())
 				priSlice := [NUMBER_OF_ELEVATORS]RemoteOrder{}
 				for i := 0; i < len(priSlice); i++ {
