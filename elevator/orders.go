@@ -2,6 +2,7 @@ package main
 
 import (
 	"Driver-go/elevio"
+	"fmt"
 	//"time"
 )
 
@@ -78,17 +79,22 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 	//for each elevator calculate the best order it should take
 	//Hvilken ordre er best for hver heis, og hvilken heis er best for ordren.
 	//Avaialble elevators assumed sorted. so that elevator 1 comes first in the range, and
-	for _, elevator := range availableElevators {
+	for sliceIndex, elevator := range availableElevators {
 		elvIndex := elevator.GetIndex()
 		oldOrderCost := calculateOrderCost(elevator.GetPriOrder(), elevator)
 		oldOrder := elevator.GetPriOrder()
+		fmt.Println("OLD ORDER COST", oldOrderCost)
 		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
 			var btnColumns = []int{0, 1, elvIndex + 2} //Check for the columns: Up, Down, and the given elevator
 			for _, btn := range btnColumns {
 				if MasterOrderPanel[floor][btn] == OT_Order {
+					var button int = btn
+					if btn > 1 {
+						button = 2
+					}
 					order := elevio.ButtonEvent{
 						Floor:  floor,
-						Button: elevio.ButtonType(btn),
+						Button: elevio.ButtonType(button),
 					}
 					var orderCost int = calculateOrderCost(order, elevator)
 					if orderCost < oldOrderCost {
@@ -104,9 +110,18 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 						}
 						if orderCost == lowestCostAllElevators {
 							elevator.SetPriOrder(order)
-							MasterOrderPanel[oldOrder.Floor][oldOrder.Button] = OT_Order
-							MasterOrderPanel[order.Floor][order.Button] = OT_InProgress
+							fmt.Println("NewORDER:", order)
+							//fmt.Println(order)
+							//fmt.Println("OLD_ORDER:")
+							//fmt.Println(oldOrder)
+							if oldOrder.Floor != -1 {
+								SetOrder(MasterOrderPanel, oldOrder, OT_Order, elevator.GetIndex())
+							}
+							SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
+							availableElevators[sliceIndex] = elevator
 						}
+						fmt.Print("NEW ORDER COST", orderCost)
+
 					}
 				}
 			}
