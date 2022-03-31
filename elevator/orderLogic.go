@@ -180,14 +180,14 @@ func PederSinOrderLogicMain() {
 					}
 					completeOrders = []elevio.ButtonEvent{}
 
-
 					var myElevatorlist []Elevator = []Elevator{myElevator}
 					myElevatorlist = PrioritizeOrders(&MasterOrderPanel, myElevatorlist)
 					myElevator = myElevatorlist[0]
 
 					fmt.Println("Actual order:", myElevator.GetPriOrder())
+					//TESTING PRINTING
+					//for
 					fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
-
 
 				}
 				//---------------------------------------------------
