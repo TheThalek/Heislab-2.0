@@ -90,7 +90,7 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
 			var btnColumns = []int{0, 1, elvIndex + 2} //Check for the columns: Up, Down, and the given elevator
 			for _, btn := range btnColumns {
-				if MasterOrderPanel[floor][btn] == OT_Order {
+				if MasterOrderPanel[floor][btn] == OT_Order || MasterOrderPanel[floor][btn] == OT_InProgress+elvIndex {
 					var button int = btn
 					if btn > 1 {
 						button = 2
@@ -119,10 +119,10 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 							//fmt.Println(oldOrder)
 							if oldOrder.Floor != -1 {
 								SetOrder(MasterOrderPanel, oldOrder, OT_Order, elevator.GetIndex())
-								SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
+								SetOrder(MasterOrderPanel, order, OT_InProgress+elvIndex, elevator.GetIndex())
 							} else {
 								fmt.Println("I'm old:", oldOrder, "I'm new:", order)
-								SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
+								SetOrder(MasterOrderPanel, order, OT_InProgress+elvIndex, elevator.GetIndex())
 								//oldOrder
 
 							}
