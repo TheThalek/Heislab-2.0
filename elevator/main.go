@@ -5,6 +5,7 @@ package main
 //Evt build and execute: go build && ./Elevator
 
 //om du vil kjøre en og en, eller kun noen, go run .\main.go .\\Vår\Sanntidsprogrammerelevator.go .\orderLogic.go .\networking.go
+//Testingbranch
 func main() {
 	//MS_FSM.maikenSinMain()
 	//singleFSM.ThaleSinMain()
