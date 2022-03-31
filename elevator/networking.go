@@ -14,7 +14,7 @@ import (
 )
 
 const DELIM = "//"
-const PERIOD = 500 * time.Millisecond
+const PERIOD = 100 * time.Millisecond
 
 type RemoteOrder struct {
 	ID    string

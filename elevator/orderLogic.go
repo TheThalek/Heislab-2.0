@@ -17,7 +17,7 @@ const (
 )
 
 func PederSinOrderLogicMain() {
-	var myElevator Elevator
+	var myElevator Elevator = NewElevator()
 	var MasterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 
 	var sysState SystemState = Initialization
@@ -37,6 +37,10 @@ func PederSinOrderLogicMain() {
 	myElevator.SetIndex(elevIndex)
 
 	var elevatorPeers [NUMBER_OF_ELEVATORS]*Elevator
+	for i := 0; i < len(elevatorPeers); i++ {
+		nElev := NewElevator()
+		elevatorPeers[i] = &nElev
+	}
 
 	elevatorPeers[elevIndex] = &myElevator
 
@@ -54,6 +58,7 @@ func PederSinOrderLogicMain() {
 			completeOrders = append(completeOrders, cOrds...)
 		case nOrds := <-newOrderChan:
 			newOrders = append(newOrders, nOrds)
+			//fmt.Println(newOrders)
 		case role := <-roleChan:
 			if role == "Master" {
 				sysState = Master
@@ -180,17 +185,14 @@ func PederSinOrderLogicMain() {
 					}
 					completeOrders = []elevio.ButtonEvent{}
 
-
 					var myElevatorlist []Elevator = []Elevator{myElevator}
 					myElevatorlist = PrioritizeOrders(&MasterOrderPanel, myElevatorlist)
 					myElevator = myElevatorlist[0]
 
-					fmt.Println("Actual order:", myElevator.GetPriOrder())
-					fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
-
+					// fmt.Println("Actual order:", myElevator.GetPriOrder())
+					// fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
 
 				}
-				//---------------------------------------------------
 			}
 			time.Sleep(PERIOD)
 		}

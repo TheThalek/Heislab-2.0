@@ -2,7 +2,6 @@ package main
 
 import (
 	"Driver-go/elevio"
-	"fmt"
 	//"time"
 )
 
@@ -15,10 +14,12 @@ const (
 )
 const (
 	//CT = CostType
+	CT_LowestCost          = -100000
 	CT_DistanceCost        = 10
 	CT_DirSwitchCost       = 100
 	CT_DoubleDirSwitchCost = 1000
 	CT_ObsCost             = 10000
+	CT_InvalidCost         = 100000
 )
 
 func intAbs(x int) int {
@@ -33,11 +34,14 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	//Add cost of obstruction
 	elevFloor := elevator.GetCurrentFloor()
 	elevDirection := elevator.GetDirection()
-	var cost int = 0
+	var cost int = CT_LowestCost
 	if order.Floor == elevFloor && ((order.Button == elevio.BT_HallUp && elevDirection == elevio.MD_Up) || (order.Button == elevio.BT_HallDown && elevDirection == elevio.MD_Down) || order.Button == elevio.BT_Cab) {
 		return cost
 	}
 	orderFloor := order.Floor
+	if orderFloor == -1 {
+		return CT_InvalidCost
+	}
 	orderDirection := 0
 	if elevFloor < orderFloor {
 		orderDirection = int(elevio.MD_Up)
@@ -83,11 +87,10 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 		elvIndex := elevator.GetIndex()
 		oldOrderCost := calculateOrderCost(elevator.GetPriOrder(), elevator)
 		oldOrder := elevator.GetPriOrder()
-		fmt.Println("OLD ORDER COST", oldOrderCost)
 		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
 			var btnColumns = []int{0, 1, elvIndex + 2} //Check for the columns: Up, Down, and the given elevator
 			for _, btn := range btnColumns {
-				if MasterOrderPanel[floor][btn] == OT_Order {
+				if MasterOrderPanel[floor][btn] != OT_NoOrder {
 					var button int = btn
 					if btn > 1 {
 						button = 2
@@ -110,19 +113,16 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 						}
 						if orderCost == lowestCostAllElevators {
 							elevator.SetPriOrder(order)
-							fmt.Println("NewORDER:", order)
 
 							//fmt.Println(order)
 							//fmt.Println("OLD_ORDER:")
 							//fmt.Println(oldOrder)
 							if oldOrder.Floor != -1 {
 								SetOrder(MasterOrderPanel, oldOrder, OT_Order, elevator.GetIndex())
+								SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
 							}
-							SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
 							availableElevators[sliceIndex] = elevator
 						}
-						fmt.Print("NEW ORDER COST", orderCost)
-
 					}
 				}
 			}
