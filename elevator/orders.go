@@ -13,13 +13,18 @@ const (
 	OT_Completed  = 3
 )
 const (
-	//CT = CostType
-	CT_LowestCost          = -100000
+  
+	CT_MinCost             = -10000
+
 	CT_DistanceCost        = 10
 	CT_DirSwitchCost       = 100
 	CT_DoubleDirSwitchCost = 1000
 	CT_ObsCost             = 10000
+
+	CT_StayingPut          = 50000
+
 	CT_InvalidCost         = 100000
+
 )
 
 func intAbs(x int) int {
@@ -36,7 +41,7 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	elevDirection := elevator.GetDirection()
 	var cost int = CT_LowestCost
 	if order.Floor == elevFloor && ((order.Button == elevio.BT_HallUp && elevDirection == elevio.MD_Up) || (order.Button == elevio.BT_HallDown && elevDirection == elevio.MD_Down) || order.Button == elevio.BT_Cab) {
-		return cost
+		return CT_MinCost
 	}
 	orderFloor := order.Floor
 	if orderFloor == -1 {
@@ -73,7 +78,9 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	if elevObstruct {
 		cost += CT_ObsCost
 	}
-
+	if orderFloor == -1 {
+		cost += CT_StayingPut
+	}
 	return cost
 }
 
@@ -90,7 +97,9 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
 			var btnColumns = []int{0, 1, elvIndex + 2} //Check for the columns: Up, Down, and the given elevator
 			for _, btn := range btnColumns {
-				if MasterOrderPanel[floor][btn] != OT_NoOrder {
+        
+				if MasterOrderPanel[floor][btn] == OT_Order || MasterOrderPanel[floor][btn] == OT_InProgress+elvIndex {
+
 					var button int = btn
 					if btn > 1 {
 						button = 2
@@ -114,15 +123,25 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 						if orderCost == lowestCostAllElevators {
 							elevator.SetPriOrder(order)
 
+							fmt.Println("NewORDER:", order)
+
 							//fmt.Println(order)
 							//fmt.Println("OLD_ORDER:")
 							//fmt.Println(oldOrder)
 							if oldOrder.Floor != -1 {
 								SetOrder(MasterOrderPanel, oldOrder, OT_Order, elevator.GetIndex())
-								SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
+
+								SetOrder(MasterOrderPanel, order, OT_InProgress+elvIndex, elevator.GetIndex())
+							} else {
+								fmt.Println("I'm old:", oldOrder, "I'm new:", order)
+								SetOrder(MasterOrderPanel, order, OT_InProgress+elvIndex, elevator.GetIndex())
+								//oldOrder
+
 							}
+
 							availableElevators[sliceIndex] = elevator
 						}
+						fmt.Println("NEW ORDER COST:", orderCost)
 					}
 				}
 			}
