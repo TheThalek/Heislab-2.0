@@ -8,7 +8,7 @@ import (
 
 func LocalInit() { //default: 15657 - SEt to random then start elevatorserver to elevatorserver --port15054
 
-	elevio.Init("localhost:15054", NUMBER_OF_FLOORS)
+	elevio.Init("localhost:1888", NUMBER_OF_FLOORS)
 
 	elevio.SetDoorOpenLamp(false)
 
@@ -51,29 +51,6 @@ func pollPriOrder(priOrder chan elevio.ButtonEvent, myElevator *Elevator) {
 	}
 }
 
-func test(myElevator *Elevator) {
-	time.Sleep(5 * time.Second)
-	for {
-		testPri1 := elevio.ButtonEvent{
-			Floor:  1,
-			Button: elevio.ButtonType(0),
-		}
-		myElevator.SetPriOrder(testPri1)
-
-		if myElevator.GetCurrentFloor() == myElevator.GetPriOrder().Floor {
-			break
-		}
-		time.Sleep(PERIOD)
-	}
-
-	time.Sleep(15 * time.Second)
-	testPri2 := elevio.ButtonEvent{
-		Floor:  3,
-		Button: elevio.ButtonType(0),
-	}
-	myElevator.SetPriOrder(testPri2)
-}
-
 func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, takenOrders chan []elevio.ButtonEvent, newOrders chan elevio.ButtonEvent) {
 
 	elevio.SetMotorDirection(elevio.MD_Down)
@@ -108,7 +85,9 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 		//fmt.Println("Moving", moving, "door open", doorOpen)
 		select {
 		case currentPriorder := <-priOrderChan:
-			//fmt.Println("currentOrder", currentOrder)
+			if currentPriorder.Floor != -1 {
+				//fmt.Println("currentOrder", currentPriorder)
+			}
 			var currentFloor int = myElevator.GetCurrentFloor()
 
 			if currentPriorder.Floor != currentFloor && currentPriorder.Floor != -1 {
@@ -120,8 +99,7 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 				if currentFloor != currentPriorder.Floor {
 					//Elevator is not on the prioritized floor
 					myElevator.DriveTo(currentPriorder)
-				}
-				if !moving && currentPriorder.Floor == currentFloor {
+				} else if !moving && currentPriorder.Floor == currentFloor {
 					//Not moving and elevator is at the correct floor
 					//Switch direction to suit the order it's currentPriorder
 					if currentPriorder.Button == elevio.BT_HallUp {
@@ -140,8 +118,9 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 					// } else if myElevator.GetDirection() == elevio.MD_Down {
 					// 	event.Button = elevio.BT_HallDown
 					// }
-					//open doors
 
+					//fmt.Println("READY TO CLEAR ORDER AT THIS FLOOR")
+					//open doors
 					doorOpen = true
 					elevio.SetDoorOpenLamp(doorOpen)
 					//timer
@@ -180,7 +159,7 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 						completedOrders = append(completedOrders, dirOrder)
 					}
 					if len(completedOrders) > 0 {
-						fmt.Println("LOCAL COMPLETED ORDERS:", completedOrders)
+						//fmt.Println("LOCAL COMPLETED ORDERS:", completedOrders)
 					}
 
 					takenOrders <- completedOrders
@@ -194,7 +173,6 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 						doorOpen = false
 						elevio.SetDoorOpenLamp(doorOpen)
 					}
-					//fmt.Println("pri >> door closed")
 				}
 			}
 
@@ -212,11 +190,10 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 			if myElevator.GetPriOrder().Floor != newFloor && myElevator.GetPriOrder().Floor != -1 {
 				//stop moving
 				moving = true
-				fmt.Println("floor >> moving")
 			} else {
 				moving = false
+				//fmt.Println("I HAVE REACHED MY ORDER!!")
 				elevio.SetMotorDirection(elevio.MD_Stop)
-				//fmt.Println("floor >> not moving")
 			}
 			//switch direction if at top or bottom floor
 			if myElevator.GetCurrentFloor() == 0 {
@@ -244,5 +221,3 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 		time.Sleep(PERIOD / 3)
 	}
 }
-
-//TEST

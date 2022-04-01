@@ -107,7 +107,6 @@ func ExtractSlaveInformation(slaveMsg NetworkMessage) SlaveInformation {
 	nOrds := []elevio.ButtonEvent{}
 	cOrds := []elevio.ButtonEvent{}
 	nOrdsStringArray := strings.Split(mSplit[3], " ")
-	fmt.Println("Orderstring>>", nOrdsStringArray)
 	if fmt.Sprint(nOrdsStringArray) != "[]" {
 		for i := 0; i < len(nOrdsStringArray); i = i + 2 {
 			fl, _ := strconv.Atoi(nOrdsStringArray[i])
@@ -144,43 +143,11 @@ func ReportMasterTimeOut(masterTimeOutChan chan<- string, reset <-chan string) {
 }
 
 func SortNetworkPeers(peers []string) []int {
-
 	var sortedPeers []int = []int{}
 	for _, s := range peers {
 		integer, _ := strconv.Atoi(s)
 		sortedPeers = append(sortedPeers, integer)
 	}
-
-	// if len(peers) == 1 {
-	// 	return sortedPeers
-	// }
-
-	// for i := 1; i < len(peers); i++ {
-	// 	val, _ := strconv.Atoi(strings.Split(peers[i], "-")[2])
-	// 	j := 0
-	// 	for {
-	// 		cmp, _ := strconv.Atoi(strings.Split(peers[j], "-")[2])
-	// 		if val < cmp || j+1 == len(sortedPeers) {
-	// 			j = j + 1
-	// 			break
-	// 		}
-	// 		j = j + 1
-	// 	}
-	// 	var temp []string
-	// 	if j == 0 {
-	// 		temp = []string{peers[i]}
-	// 		temp = append(temp, sortedPeers...)
-	// 	} else if j == len(sortedPeers)-1 {
-	// 		temp = sortedPeers
-	// 		temp = append(temp, peers[i])
-	// 	} else {
-	// 		temp = sortedPeers[:j]
-	// 		temp = append(temp, "0")
-	// 		temp = append(temp, sortedPeers[j:]...)
-	// 		temp[j] = peers[i]
-	// 	}
-	// 	sortedPeers = temp
-	// }
 	return sortedPeers
 }
 
@@ -241,7 +208,7 @@ func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages c
 			}
 			receivedMessages <- a
 		case <-mTimeout:
-			if id == networkPeers[0] {
+			if id == networkPeers[0] && len(networkPeers) > 1 {
 				roleChan <- string(MO_Master)
 			}
 		default:

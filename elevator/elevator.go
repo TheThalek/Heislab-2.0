@@ -71,6 +71,9 @@ func (e *Elevator) DriveTo(order elevio.ButtonEvent) {
 	var elevDir elevio.MotorDirection
 	var motorDir elevio.MotorDirection
 
+	if order.Floor == -1 {
+		return
+	}
 	if e.GetCurrentFloor() < order.Floor {
 		motorDir = elevio.MD_Up
 		elevDir = motorDir

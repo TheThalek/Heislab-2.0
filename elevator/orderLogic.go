@@ -4,6 +4,7 @@ import (
 	"Driver-go/elevio"
 	"fmt"
 	"strconv"
+	"time"
 )
 
 type SystemState int
@@ -62,10 +63,10 @@ func PederSinOrderLogicMain() {
 		case role := <-roleChan:
 			if role == string(MO_Master) {
 				sysState = Master
+				//fmt.Println("MY role: ", role)
 			} else if role == string(MO_Slave) {
 				sysState = Slave
 			}
-			//fmt.Println("MY role: ", role)
 
 		case onlinePeers := <-peerChan:
 			for i := 0; i < NUMBER_OF_ELEVATORS; i++ {
@@ -83,8 +84,9 @@ func PederSinOrderLogicMain() {
 		case msg := <-receivedMessages:
 			peerID, _ := strconv.Atoi(msg.ID)
 			if peerID != id {
-				fmt.Println("We recieved the message: ", msg)
+				fmt.Println("MSG RECEIVED")
 			}
+
 			if sysState == Master && msg.Origin == MO_Slave {
 				slaveInfo := ExtractSlaveInformation(msg)
 				newElev := Elevator{
@@ -94,6 +96,7 @@ func PederSinOrderLogicMain() {
 					priOrder:     elevatorPeers[peerID].priOrder,
 					index:        peerID,
 				}
+				fmt.Println(peerID, "is at", slaveInfo.currentFloor)
 				elevatorPeers[peerID] = &newElev
 				for _, ord := range slaveInfo.CompletedOrders {
 					SetOrder(&MasterOrderPanel, ord, OT_NoOrder, peerID)
@@ -103,9 +106,10 @@ func PederSinOrderLogicMain() {
 				}
 
 			} else if sysState == Slave && msg.Origin == MO_Master {
-				masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_BUTTONS, NUMBER_OF_ELEVATORS)
+				masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_COLUMNS, NUMBER_OF_ELEVATORS)
 				if msg.ID != strconv.Itoa(id) {
 					MasterOrderPanel = masterInfo.OrderPanel
+					fmt.Println(MasterOrderPanel)
 				}
 
 				var compOrdersUpdate []elevio.ButtonEvent
@@ -136,6 +140,19 @@ func PederSinOrderLogicMain() {
 					SetOrder(&MasterOrderPanel, ord, OT_NoOrder, myElevator.GetIndex())
 				}
 				completeOrders = []elevio.ButtonEvent{}
+				var myElevatorlist []Elevator = []Elevator{myElevator}
+
+				currentPriOrder := myElevator.GetPriOrder()
+				myElevatorlist = PrioritizeOrders(MasterOrderPanel, myElevatorlist)
+				myElevator = myElevatorlist[0]
+				newPriOrder := myElevator.GetPriOrder()
+
+				if currentPriOrder.Floor != -1 && newPriOrder != currentPriOrder {
+					SetOrder(&MasterOrderPanel, currentPriOrder, OT_Order, myElevator.GetIndex())
+				}
+				if newPriOrder.Floor != -1 && newPriOrder != currentPriOrder {
+					SetOrder(&MasterOrderPanel, newPriOrder, OT_InProgress, myElevator.GetIndex())
+				}
 
 				var available []Elevator
 				for _, elev := range elevatorPeers {
@@ -159,6 +176,7 @@ func PederSinOrderLogicMain() {
 					OrderPanel: MasterOrderPanel,
 					Priorities: priSlice,
 				}
+				fmt.Println("MASTER MSG SENT")
 				msgTx <- NewMasterMessage(strconv.Itoa(id), masterInfo)
 			case Slave:
 				slaveInfo := SlaveInformation{
@@ -168,11 +186,11 @@ func PederSinOrderLogicMain() {
 					NewOrders:       newOrders,
 					CompletedOrders: completeOrders,
 				}
+				fmt.Println("SLAVE MSG SENT")
 				msgTx <- NewSlaveMessage(strconv.Itoa(id), slaveInfo)
 				//If it's not online it needs to handle it's own prioritized order same as master
 				if myElevator.GetOnline() == false {
 
-					panel := MasterOrderPanel
 					for _, ord := range newOrders {
 						SetOrder(&MasterOrderPanel, ord, OT_Order, myElevator.GetIndex())
 					}
@@ -196,15 +214,16 @@ func PederSinOrderLogicMain() {
 					}
 					//fmt.Println("Actual order:", myElevator.GetPriOrder())
 					//TESTING PRINTING
-					if newPriOrder != currentPriOrder {
-						fmt.Println("Actual order:", myElevator.GetPriOrder())
-					}
+					// if newPriOrder != currentPriOrder {
+					// 	fmt.Println("Actual order:", myElevator.GetPriOrder())
+					// }
 
-					if MasterOrderPanel != panel {
-						fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
-					}
+					// if MasterOrderPanel != panel {
+					// 	fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
+					// }
 				}
 			}
 		}
+		time.Sleep(PERIOD)
 	}
 }
