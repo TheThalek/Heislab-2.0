@@ -233,3 +233,5 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 		}
 	}
 }
+
+//TEST
