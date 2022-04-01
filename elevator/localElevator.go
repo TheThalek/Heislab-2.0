@@ -36,7 +36,7 @@ import (
 
 func LocalInit() { //default: 15657
 
-	elevio.Init("localhost:1888", NUMBER_OF_FLOORS)
+	elevio.Init("localhost:15657", NUMBER_OF_FLOORS)
 
 	elevio.SetDoorOpenLamp(false)
 
@@ -193,8 +193,8 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 							Button: elevio.ButtonType(elevio.BT_HallDown),
 						}
 						completedOrders = append(completedOrders, dirOrder)
-					}else{
-						fmt.Println("UNABLE TO ADD ORDER TO COMPLETE",)
+					} else {
+						fmt.Println("UNABLE TO ADD ORDER TO COMPLETE")
 					}
 					//fmt.Println("CMPLT ORDERS:", completedOrders)
 					takenOrders <- completedOrders
