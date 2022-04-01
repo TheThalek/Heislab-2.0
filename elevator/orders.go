@@ -2,6 +2,7 @@ package main
 
 import (
 	"Driver-go/elevio"
+	"fmt"
 	//"time"
 )
 
@@ -13,18 +14,16 @@ const (
 	OT_Completed  = 3
 )
 const (
-  
-	CT_MinCost             = -10000
+	CT_MinCost = -10000
 
 	CT_DistanceCost        = 10
 	CT_DirSwitchCost       = 100
 	CT_DoubleDirSwitchCost = 1000
 	CT_ObsCost             = 10000
 
-	CT_StayingPut          = 50000
+	CT_StayingPut = 50000
 
-	CT_InvalidCost         = 100000
-
+	CT_InvalidCost = 100000
 )
 
 func intAbs(x int) int {
@@ -97,7 +96,7 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
 			var btnColumns = []int{0, 1, elvIndex + 2} //Check for the columns: Up, Down, and the given elevator
 			for _, btn := range btnColumns {
-        
+
 				if MasterOrderPanel[floor][btn] == OT_Order || MasterOrderPanel[floor][btn] == OT_InProgress+elvIndex {
 
 					var button int = btn
@@ -121,6 +120,7 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 							}
 						}
 						if orderCost == lowestCostAllElevators {
+
 							elevator.SetPriOrder(order)
 
 							fmt.Println("NewORDER:", order)
