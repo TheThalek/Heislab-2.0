@@ -17,7 +17,6 @@ const DELIM = "//"
 
 const PERIOD = 100 * time.Millisecond
 
-
 type RemoteOrder struct {
 	ID    string
 	order elevio.ButtonEvent
