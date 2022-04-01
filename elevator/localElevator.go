@@ -177,6 +177,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 					var priorityOrder elevio.ButtonEvent
 					priorityOrder.Floor = -1
 					myElevator.SetPriOrder(priorityOrder)
+					fmt.Println("Cleared", currentPriorder)
 					//open door
 					if !myElevator.GetObs() {
 						doorOpen = false

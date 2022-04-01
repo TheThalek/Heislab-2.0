@@ -174,7 +174,7 @@ func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order 
 		bt = 2 + index
 	}
 	MasterOrderPanel[fl][bt] = OrderType
-	fmt.Println("SETTING ORDER")
+	fmt.Println("SETTING ORDER:", order)
 }
 
 //Make a function that get's the timeout message, and then sets and order back to OT_order
@@ -191,6 +191,7 @@ func TimeOutElevatorOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS
 func CompletedOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, completeElevator Elevator) {
 	completeOrder := completeElevator.GetPriOrder()
 	MasterOrderPanel[completeOrder.Floor][completeOrder.Button] = OT_NoOrder
+	fmt.Println("Completed orders function:", completeOrder)
 }
 
 func maikenSinMain() {
