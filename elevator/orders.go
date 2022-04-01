@@ -2,6 +2,7 @@ package main
 
 import (
 	"Driver-go/elevio"
+	"fmt"
 	//"time"
 	"fmt"
 )
@@ -20,9 +21,8 @@ const (
 	CT_DoubleDirSwitchCost = 1000
 	CT_ObsCost             = 10000
 
-	CT_StayingPut = 50000
 
-	// CT_InvalidCost = 100000
+	CT_StayingPut = 100000
 )
 
 func intAbs(x int) int {
@@ -42,9 +42,10 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 		return CT_MinCost
 	}
 	orderFloor := order.Floor
-	// if orderFloor == -1 {
-	// 	return CT_InvalidCost
-	// }
+	if orderFloor == -1 {
+		return CT_StayingPut
+	}
+
 	orderDirection := 0
 	if elevFloor < orderFloor {
 		orderDirection = int(elevio.MD_Up)
@@ -76,9 +77,7 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	if elevObstruct {
 		cost += CT_ObsCost
 	}
-	if orderFloor == -1 {
-		cost += CT_StayingPut
-	}
+	
 	return cost
 }
 
@@ -119,7 +118,9 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 							}
 						}
 
-						if orderCost == lowestCostAllElevators && oldOrder != order {
+						if orderCost == lowestCostAllElevators {
+						//if orderCost == lowestCostAllElevators && oldOrder != order {
+
 							elevator.SetPriOrder(order)
 
 							fmt.Println("NewORDER:", order)
