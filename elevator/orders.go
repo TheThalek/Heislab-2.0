@@ -11,7 +11,6 @@ const (
 	OT_NoOrder    = 0
 	OT_Order      = 1
 	OT_InProgress = 2
-	OT_Completed  = 3
 )
 const (
 	CT_MinCost = -10000
@@ -21,9 +20,7 @@ const (
 	CT_DoubleDirSwitchCost = 1000
 	CT_ObsCost             = 10000
 
-	CT_StayingPut = 50000
-
-	CT_InvalidCost = 100000
+	CT_StayingPut = 100000
 )
 
 func intAbs(x int) int {
@@ -44,7 +41,7 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	}
 	orderFloor := order.Floor
 	if orderFloor == -1 {
-		return CT_InvalidCost
+		return CT_StayingPut
 	}
 	orderDirection := 0
 	if elevFloor < orderFloor {
@@ -77,9 +74,9 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	if elevObstruct {
 		cost += CT_ObsCost
 	}
-	if orderFloor == -1 {
-		cost += CT_StayingPut
-	}
+	// if orderFloor == -1 {
+	// 	cost += CT_StayingPut
+	// }
 	return cost
 }
 

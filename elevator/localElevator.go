@@ -193,8 +193,8 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 							Button: elevio.ButtonType(elevio.BT_HallDown),
 						}
 						completedOrders = append(completedOrders, dirOrder)
-					}else{
-						fmt.Println("UNABLE TO ADD ORDER TO COMPLETE",)
+					} else {
+						fmt.Println("UNABLE TO ADD ORDER TO COMPLETE")
 					}
 					//fmt.Println("CMPLT ORDERS:", completedOrders)
 					takenOrders <- completedOrders
