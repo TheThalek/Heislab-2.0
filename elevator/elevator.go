@@ -56,6 +56,17 @@ func (e *Elevator) SetOnline(online bool) {
 	e.online = online
 }
 
+func NewElevator() Elevator {
+	return Elevator{
+		direction:    elevio.MD_Stop,
+		currentFloor: -1,
+		obs:          false,
+		priOrder:     elevio.ButtonEvent{Floor: -1, Button: elevio.BT_Cab},
+		index:        -1,
+		online:       false,
+	}
+}
+
 func (e *Elevator) DriveTo(order elevio.ButtonEvent) {
 	var elevDir elevio.MotorDirection
 	var motorDir elevio.MotorDirection
