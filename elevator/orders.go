@@ -35,7 +35,7 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	elevDirection := elevator.GetDirection()
 	var cost int = 0
 	if order.Floor == elevFloor && ((order.Button == elevio.BT_HallUp && elevDirection == elevio.MD_Up) || (order.Button == elevio.BT_HallDown && elevDirection == elevio.MD_Down) || order.Button == elevio.BT_Cab) {
-		return cost
+		return CT_LowestCost
 	}
 	orderFloor := order.Floor
 	orderDirection := 0

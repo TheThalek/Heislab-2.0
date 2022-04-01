@@ -14,7 +14,7 @@ import (
 )
 
 const DELIM = "//"
-const PERIOD = 500 * time.Millisecond
+const PERIOD = 300 * time.Millisecond
 
 type RemoteOrder struct {
 	ID    string
@@ -106,6 +106,7 @@ func ExtractSlaveInformation(slaveMsg NetworkMessage) SlaveInformation {
 	nOrds := []elevio.ButtonEvent{}
 	cOrds := []elevio.ButtonEvent{}
 	nOrdsStringArray := strings.Split(mSplit[3], " ")
+	fmt.Println("Orderstring>>", nOrdsStringArray)
 	for i := 0; i < len(nOrdsStringArray); i = i + 2 {
 		fl, _ := strconv.Atoi(nOrdsStringArray[i])
 		bt_int, _ := strconv.Atoi(nOrdsStringArray[i+1])

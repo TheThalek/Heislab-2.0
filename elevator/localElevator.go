@@ -34,7 +34,7 @@ import (
 // 	}
 // }
 
-func LocalInit() {
+func LocalInit() { //default: 15657
 	elevio.Init("localhost:15657", NUMBER_OF_FLOORS)
 	elevio.SetDoorOpenLamp(false)
 
