@@ -111,7 +111,7 @@ func PederSinOrderLogicMain() {
 
 				var compOrdersUpdate []elevio.ButtonEvent
 				for _, ord := range newOrders {
-					if GetOrder(MasterOrderPanel, ord, peerID) != OT_Completed {
+					if GetOrder(MasterOrderPanel, ord, peerID) != OT_NoOrder {
 						compOrdersUpdate = append(compOrdersUpdate, ord)
 					}
 				}
