@@ -190,7 +190,7 @@ func PederSinOrderLogicMain() {
 					fmt.Println("Actual order:", myElevator.GetPriOrder())
 					//TESTING PRINTING
 					//for
-					fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
+					//fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
 
 					// fmt.Println("Actual order:", myElevator.GetPriOrder())
 					// fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)

@@ -19,13 +19,14 @@ func LocalInit() { //default: 15657 - SEt to random then start elevatorserver to
 	}
 }
 
-func setLights(masterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myElevator *Elevator) {
+func setLights(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myElevator *Elevator) {
 	for {
+		fmt.Println("LIGHTS PANEL", *MasterOrderPanel)
 		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
 			var btnColumns = []int{0, 1, myElevator.GetIndex() + 2}
 			for _, btn := range btnColumns {
 				var lightValue bool
-				if masterOrderPanel[floor][btn] == OT_NoOrder {
+				if MasterOrderPanel[floor][btn] == OT_NoOrder {
 					lightValue = false
 				} else {
 					lightValue = true
@@ -75,7 +76,7 @@ func test(myElevator *Elevator) {
 	myElevator.SetPriOrder(testPri2)
 }
 
-func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, takenOrders chan []elevio.ButtonEvent, newOrders chan elevio.ButtonEvent) {
+func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, takenOrders chan []elevio.ButtonEvent, newOrders chan elevio.ButtonEvent) {
 
 	elevio.SetMotorDirection(elevio.MD_Down)
 
@@ -87,7 +88,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 	priorityOrder.Floor = -1
 	myElevator.SetPriOrder(priorityOrder)
 
-	go setLights(masterOrderPanel, myElevator)
+	go setLights(MasterOrderPanel, myElevator)
 
 	drv_stop := make(chan bool)
 	drv_buttons := make(chan elevio.ButtonEvent)
@@ -149,20 +150,20 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 					//clear the relevant orders
 					var completedOrders []elevio.ButtonEvent
 
-					if masterOrderPanel[currentFloor][myElevator.GetIndex()+2] == OT_InProgress {
+					if MasterOrderPanel[currentFloor][myElevator.GetIndex()+2] == OT_InProgress {
 						cabOrder := elevio.ButtonEvent{
 							Floor:  currentFloor,
 							Button: elevio.ButtonType(elevio.BT_Cab),
 						}
 						completedOrders = append(completedOrders, cabOrder)
 					}
-					if masterOrderPanel[currentFloor][0] == OT_InProgress {
+					if MasterOrderPanel[currentFloor][0] == OT_InProgress {
 						dirOrder := elevio.ButtonEvent{
 							Floor:  currentFloor,
 							Button: elevio.ButtonType(elevio.BT_HallUp),
 						}
 						completedOrders = append(completedOrders, dirOrder)
-					} else if masterOrderPanel[currentFloor][1] == OT_InProgress {
+					} else if MasterOrderPanel[currentFloor][1] == OT_InProgress {
 						dirOrder := elevio.ButtonEvent{
 							Floor:  currentFloor,
 							Button: elevio.ButtonType(elevio.BT_HallDown),
@@ -177,7 +178,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 					var priorityOrder elevio.ButtonEvent
 					priorityOrder.Floor = -1
 					myElevator.SetPriOrder(priorityOrder)
-					fmt.Println("Cleared", currentPriorder)
+					fmt.Println("Cleared in local elevator", currentPriorder)
 					//open door
 					if !myElevator.GetObs() {
 						doorOpen = false
