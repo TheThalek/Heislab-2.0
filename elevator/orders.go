@@ -11,7 +11,6 @@ const (
 	OT_NoOrder    = 0
 	OT_Order      = 1
 	OT_InProgress = 2
-	OT_Completed  = 3
 )
 const (
 	CT_MinCost = -10000
@@ -119,7 +118,8 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 								}
 							}
 						}
-						if orderCost == lowestCostAllElevators {
+
+						if orderCost == lowestCostAllElevators && oldOrder != order {
 							elevator.SetPriOrder(order)
 
 							fmt.Println("NewORDER:", order)
@@ -127,12 +127,12 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 							//fmt.Println(order)
 							//fmt.Println("OLD_ORDER:")
 							//fmt.Println(oldOrder)
+							fmt.Println("I'm old:", oldOrder, "I'm new:", order)
 							if oldOrder.Floor != -1 {
 								SetOrder(MasterOrderPanel, oldOrder, OT_Order, elevator.GetIndex())
 
 								SetOrder(MasterOrderPanel, order, OT_InProgress+elvIndex, elevator.GetIndex())
 							} else {
-								fmt.Println("I'm old:", oldOrder, "I'm new:", order)
 								SetOrder(MasterOrderPanel, order, OT_InProgress+elvIndex, elevator.GetIndex())
 								//oldOrder
 
@@ -174,6 +174,7 @@ func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order 
 		bt = 2 + index
 	}
 	MasterOrderPanel[fl][bt] = OrderType
+	fmt.Println("SETTING ORDER")
 }
 
 //Make a function that get's the timeout message, and then sets and order back to OT_order
