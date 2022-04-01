@@ -54,7 +54,7 @@ func PederSinOrderLogicMain() {
 
 	sysState = Slave
 	for {
-		fmt.Println(MasterOrderPanel)
+		//fmt.Println(MasterOrderPanel)
 		select {
 		case cOrds := <-completeOrderChan:
 			completeOrders = append(completeOrders, cOrds...)
