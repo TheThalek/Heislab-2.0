@@ -4,6 +4,7 @@ import (
 	"Driver-go/elevio"
 	"fmt"
 	//"time"
+	"fmt"
 )
 
 const (
@@ -19,6 +20,7 @@ const (
 	CT_DirSwitchCost       = 100
 	CT_DoubleDirSwitchCost = 1000
 	CT_ObsCost             = 10000
+
 
 	CT_StayingPut = 100000
 )
@@ -43,6 +45,7 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	if orderFloor == -1 {
 		return CT_StayingPut
 	}
+
 	orderDirection := 0
 	if elevFloor < orderFloor {
 		orderDirection = int(elevio.MD_Up)
@@ -74,9 +77,7 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	if elevObstruct {
 		cost += CT_ObsCost
 	}
-	// if orderFloor == -1 {
-	// 	cost += CT_StayingPut
-	// }
+	
 	return cost
 }
 
@@ -116,7 +117,9 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 								}
 							}
 						}
+
 						if orderCost == lowestCostAllElevators {
+						//if orderCost == lowestCostAllElevators && oldOrder != order {
 
 							elevator.SetPriOrder(order)
 
@@ -125,12 +128,12 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 							//fmt.Println(order)
 							//fmt.Println("OLD_ORDER:")
 							//fmt.Println(oldOrder)
+							fmt.Println("I'm old:", oldOrder, "I'm new:", order)
 							if oldOrder.Floor != -1 {
 								SetOrder(MasterOrderPanel, oldOrder, OT_Order, elevator.GetIndex())
 
 								SetOrder(MasterOrderPanel, order, OT_InProgress+elvIndex, elevator.GetIndex())
 							} else {
-								fmt.Println("I'm old:", oldOrder, "I'm new:", order)
 								SetOrder(MasterOrderPanel, order, OT_InProgress+elvIndex, elevator.GetIndex())
 								//oldOrder
 
@@ -172,6 +175,7 @@ func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order 
 		bt = 2 + index
 	}
 	MasterOrderPanel[fl][bt] = OrderType
+	fmt.Println("SETTING ORDER:", order)
 }
 
 //Make a function that get's the timeout message, and then sets and order back to OT_order
@@ -188,6 +192,7 @@ func TimeOutElevatorOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS
 func CompletedOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, completeElevator Elevator) {
 	completeOrder := completeElevator.GetPriOrder()
 	MasterOrderPanel[completeOrder.Floor][completeOrder.Button] = OT_NoOrder
+	fmt.Println("Completed orders function:", completeOrder)
 }
 
 func maikenSinMain() {
