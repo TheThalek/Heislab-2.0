@@ -17,7 +17,7 @@ const (
 )
 
 func PederSinOrderLogicMain() {
-	var myElevator Elevator
+	var myElevator Elevator = NewElevator()
 	var MasterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 
 	var sysState SystemState = Initialization
@@ -60,6 +60,7 @@ func PederSinOrderLogicMain() {
 			completeOrders = append(completeOrders, cOrds...)
 		case nOrds := <-newOrderChan:
 			newOrders = append(newOrders, nOrds)
+			//fmt.Println(newOrders)
 		case role := <-roleChan:
 			fmt.Println(role)
 			if role == string(MO_Master) {
@@ -194,10 +195,14 @@ func PederSinOrderLogicMain() {
 					myElevator = myElevatorlist[0]
 
 					fmt.Println("Actual order:", myElevator.GetPriOrder())
+					//TESTING PRINTING
+					//for
 					fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
 
+					// fmt.Println("Actual order:", myElevator.GetPriOrder())
+					// fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
+
 				}
-				//---------------------------------------------------
 			}
 			time.Sleep(PERIOD)
 		}

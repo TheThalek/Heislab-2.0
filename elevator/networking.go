@@ -14,7 +14,9 @@ import (
 )
 
 const DELIM = "//"
-const PERIOD = 300 * time.Millisecond
+
+const PERIOD = 100 * time.Millisecond
+
 
 type RemoteOrder struct {
 	ID    string
@@ -202,12 +204,14 @@ func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages c
 
 	peerUpdateCh := make(chan peers.PeerUpdate)
 	peerTxEnable := make(chan bool)
-	go peers.Transmitter(15647, strconv.Itoa(id), peerTxEnable)
-	go peers.Receiver(15647, peerUpdateCh)
+	//Before fucking with the nodes: Transmitter and reciever: 15647, changed it 15659
+	go peers.Transmitter(15659, strconv.Itoa(id), peerTxEnable)
+	go peers.Receiver(15659, peerUpdateCh)
 
 	msgRx := make(chan NetworkMessage)
-	go bcast.Transmitter(16569, msgTx)
-	go bcast.Receiver(16569, msgRx)
+	//Before fucking with the nodes: Transmitter and reciever: 16569, changed it 16581
+	go bcast.Transmitter(16581, msgTx)
+	go bcast.Receiver(16581, msgRx)
 
 	mTimeout := make(chan string)
 	resetMasterTimeOut := make(chan string)

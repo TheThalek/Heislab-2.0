@@ -35,7 +35,9 @@ import (
 // }
 
 func LocalInit() { //default: 15657
-	elevio.Init("localhost:15657", NUMBER_OF_FLOORS)
+
+	elevio.Init("localhost:1888", NUMBER_OF_FLOORS)
+
 	elevio.SetDoorOpenLamp(false)
 
 	for f := 0; f < NUMBER_OF_FLOORS; f++ {
@@ -143,7 +145,7 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 				//drive to the order
 				if myElevator.GetCurrentFloor() != currentOrder.Floor {
 					myElevator.DriveTo(currentOrder)
-					fmt.Println("Driving to:", currentOrder)
+					//fmt.Println("Driving to:", currentOrder)
 				}
 				if !moving && currentOrder.Floor == myElevator.GetCurrentFloor() {
 					if currentOrder.Button == elevio.BT_HallUp {
@@ -172,27 +174,29 @@ func LocalControl(myElevator *Elevator, masterOrderPanel *[NUMBER_OF_FLOORS][NUM
 					var newFloor = myElevator.GetCurrentFloor()
 					var completedOrders []elevio.ButtonEvent
 
-					if masterOrderPanel[newFloor][myElevator.GetIndex()+2] != OT_NoOrder {
+					if masterOrderPanel[newFloor][myElevator.GetIndex()+2] == OT_InProgress {
 						cabOrder := elevio.ButtonEvent{
 							Floor:  newFloor,
-							Button: elevio.ButtonType(2),
+							Button: elevio.ButtonType(elevio.BT_Cab),
 						}
 						completedOrders = append(completedOrders, cabOrder)
 					}
-					if (masterOrderPanel[newFloor][0] != OT_NoOrder) && (myElevator.GetDirection() == elevio.MD_Up) {
+					if masterOrderPanel[newFloor][0] == OT_InProgress {
 						dirOrder := elevio.ButtonEvent{
 							Floor:  newFloor,
-							Button: elevio.ButtonType(0),
+							Button: elevio.ButtonType(elevio.BT_HallUp),
 						}
 						completedOrders = append(completedOrders, dirOrder)
-					} else if (masterOrderPanel[newFloor][1] != OT_NoOrder) && (myElevator.GetDirection() == elevio.MD_Down) {
+					} else if masterOrderPanel[newFloor][1] == OT_InProgress {
 						dirOrder := elevio.ButtonEvent{
 							Floor:  newFloor,
-							Button: elevio.ButtonType(1),
+							Button: elevio.ButtonType(elevio.BT_HallDown),
 						}
 						completedOrders = append(completedOrders, dirOrder)
+					}else{
+						fmt.Println("UNABLE TO ADD ORDER TO COMPLETE",)
 					}
-					fmt.Println("CMPLT ORDERS:", completedOrders)
+					//fmt.Println("CMPLT ORDERS:", completedOrders)
 					takenOrders <- completedOrders
 
 					//set priority to an invalid order
