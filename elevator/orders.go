@@ -4,7 +4,6 @@ import (
 	"Driver-go/elevio"
 	"fmt"
 	//"time"
-	"fmt"
 )
 
 const (
