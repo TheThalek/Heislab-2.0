@@ -128,9 +128,9 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 							if oldOrder.Floor != -1 {
 								SetOrder(MasterOrderPanel, oldOrder, OT_Order, elevator.GetIndex())
 
-								SetOrder(MasterOrderPanel, order, OT_InProgress+elvIndex, elevator.GetIndex())
+								SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
 							} else {
-								SetOrder(MasterOrderPanel, order, OT_InProgress+elvIndex, elevator.GetIndex())
+								SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
 								//oldOrder
 
 							}
