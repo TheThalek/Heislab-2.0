@@ -4,7 +4,6 @@ import (
 	"Driver-go/elevio"
 	"fmt"
 	"strconv"
-	"time"
 )
 
 type SystemState int
@@ -64,6 +63,7 @@ func PederSinOrderLogicMain() {
 		case role := <-roleChan:
 			if role == string(MO_Master) {
 				sysState = Master
+				fmt.Println("MY role: ", role)
 			} else if role == string(MO_Slave) {
 				sysState = Slave
 			}
@@ -138,13 +138,15 @@ func PederSinOrderLogicMain() {
 
 				var available []Elevator
 				for _, elev := range elevatorPeers {
-					if elev.GetOnline() == false {
+					if elev.GetOnline() == true {
 						available = append(available, *elev)
 					}
 				}
 				available = PrioritizeOrders(&MasterOrderPanel, available)
 				for _, elev := range available {
-					elevatorPeers[elev.GetIndex()].SetPriOrder(elev.GetPriOrder())
+					priorityOrder := elev.GetPriOrder()
+					index := elev.GetIndex()
+					elevatorPeers[index].SetPriOrder(priorityOrder)
 				}
 				myElevator.SetPriOrder(elevatorPeers[elevIndex].GetPriOrder())
 				priSlice := [NUMBER_OF_ELEVATORS]RemoteOrder{}
@@ -186,9 +188,18 @@ func PederSinOrderLogicMain() {
 					myElevatorlist = PrioritizeOrders(&MasterOrderPanel, myElevatorlist)
 					myElevator = myElevatorlist[0]
 
+
+					//fmt.Println("Actual order:", myElevator.GetPriOrder())
+					//TESTING PRINTING
+					//for
+					//fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
+
+					// fmt.Println("Actual order:", myElevator.GetPriOrder())
+					//fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
+
+
 				}
 			}
-			time.Sleep(PERIOD)
 		}
 	}
 }
