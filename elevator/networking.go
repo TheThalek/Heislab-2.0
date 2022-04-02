@@ -95,6 +95,7 @@ func ExtractMasterInformation(masterMsg NetworkMessage, numFloors int, numButton
 //for master
 func ExtractSlaveInformation(slaveMsg NetworkMessage) SlaveInformation {
 	mSplit := strings.Split(slaveMsg.Content, DELIM)
+	fmt.Println("EXTRACTING SLAVE:", mSplit)
 	fl, _ := strconv.Atoi(mSplit[0])
 	dirInt, _ := strconv.Atoi(mSplit[1])
 	dir := elevio.MotorDirection(dirInt)
@@ -107,20 +108,21 @@ func ExtractSlaveInformation(slaveMsg NetworkMessage) SlaveInformation {
 
 	nOrds := []elevio.ButtonEvent{}
 	cOrds := []elevio.ButtonEvent{}
-	nOrdsStringArray := strings.Split(mSplit[3], " ")
-	if fmt.Sprint(nOrdsStringArray) != "[]" {
-		for i := 0; i < len(nOrdsStringArray); i = i + 2 {
-			fl, _ := strconv.Atoi(nOrdsStringArray[i])
-			bt_int, _ := strconv.Atoi(nOrdsStringArray[i+1])
-			nOrds = append(nOrds, elevio.ButtonEvent{Floor: fl, Button: elevio.ButtonType(bt_int)})
-		}
-	}
-	cOrdsStringArray := strings.Split(mSplit[4], " ")
+
+	cOrdsStringArray := strings.Split(mSplit[3], " ")
 	if fmt.Sprint(cOrdsStringArray) != "[]" {
 		for i := 0; i < len(cOrdsStringArray); i = i + 2 {
 			fl, _ := strconv.Atoi(cOrdsStringArray[i])
 			bt_int, _ := strconv.Atoi(cOrdsStringArray[i+1])
 			cOrds = append(cOrds, elevio.ButtonEvent{Floor: fl, Button: elevio.ButtonType(bt_int)})
+		}
+	}
+	nOrdsStringArray := strings.Split(mSplit[4], " ")
+	if fmt.Sprint(nOrdsStringArray) != "[]" {
+		for i := 0; i < len(nOrdsStringArray); i = i + 2 {
+			fl, _ := strconv.Atoi(nOrdsStringArray[i])
+			bt_int, _ := strconv.Atoi(nOrdsStringArray[i+1])
+			nOrds = append(nOrds, elevio.ButtonEvent{Floor: fl, Button: elevio.ButtonType(bt_int)})
 		}
 	}
 	return SlaveInformation{direction: dir, currentFloor: fl, obs: ob, NewOrders: nOrds, CompletedOrders: cOrds}
