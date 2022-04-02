@@ -96,7 +96,7 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 	//for each elevator calculate the best order it should take
 	//Hvilken ordre er best for hver heis, og hvilken heis er best for ordren.
 	//Avaialble elevators assumed sorted. so that elevator 1 comes first in the range, and
-	fmt.Println("MASTERORDER PANEL:", MasterOrderPanel)
+
 	for sliceIndex, elevator := range availableElevators {
 		elvIndex := elevator.GetIndex()
 		oldOrderCost := calculateOrderCost(elevator.GetPriOrder(), elevator)
@@ -136,9 +136,9 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 							if oldOrder.Floor != -1 {
 								SetOrder(MasterOrderPanel, oldOrder, OT_Order, elevator.GetIndex())
 
-								SetOrder(MasterOrderPanel, order, OT_InProgress+elvIndex, elevator.GetIndex())
+								SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
 							} else {
-								SetOrder(MasterOrderPanel, order, OT_InProgress+elvIndex, elevator.GetIndex())
+								SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
 								//oldOrder
 
 							}
