@@ -58,7 +58,7 @@ func NewMasterMessage(id string, info MasterInformation) NetworkMessage {
 	return newNetworkMessage(MO_Master, id, infoString)
 }
 func NewSlaveMessage(id string, info SlaveInformation) NetworkMessage {
-	return newNetworkMessage(MO_Slave, id, strconv.Itoa(info.currentFloor)+DELIM+fmt.Sprint(info.direction)+DELIM+strconv.FormatBool(info.obs)+DELIM+fmt.Sprint(info.NewOrders)+DELIM+fmt.Sprint(info.Completed Orders))
+	return newNetworkMessage(MO_Slave, id, strconv.Itoa(info.currentFloor)+DELIM+fmt.Sprint(info.direction)+DELIM+strconv.FormatBool(info.obs)+DELIM+fmt.Sprint(info.NewOrders)+DELIM+fmt.Sprint(info.CompletedOrders))
 }
 
 func StringToNetworkMsg(msg string) NetworkMessage {
