@@ -86,7 +86,6 @@ func PederSinOrderLogicMain() {
 
 				if sysState == Master && msg.Origin == MO_Slave {
 					slaveInfo := ExtractSlaveInformation(msg)
-					//fmt.Println(slaveInfo)
 					newElev := Elevator{
 						direction:    slaveInfo.direction,
 						currentFloor: slaveInfo.currentFloor,
@@ -96,11 +95,13 @@ func PederSinOrderLogicMain() {
 						online:       true,
 					}
 					elevatorPeers[peerID] = &newElev
-					for _, ord := range slaveInfo.CompletedOrders {
-						SetOrder(&MasterOrderPanel, ord, OT_NoOrder, peerID)
-					}
 					for _, ord := range slaveInfo.NewOrders {
+						//fmt.Println("NEW ORDER", ord)
 						SetOrder(&MasterOrderPanel, ord, OT_Order, peerID)
+					}
+					for _, ord := range slaveInfo.CompletedOrders {
+						fmt.Println("COMPLETED ORDER", ord)
+						SetOrder(&MasterOrderPanel, ord, OT_NoOrder, peerID)
 					}
 				} else if sysState == Slave && msg.Origin == MO_Master {
 					masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_COLUMNS, NUMBER_OF_ELEVATORS)

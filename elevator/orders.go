@@ -2,6 +2,7 @@ package main
 
 import (
 	"Driver-go/elevio"
+	"fmt"
 	//"time"
 )
 
@@ -91,7 +92,7 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 			var btnColumns = []int{0, 1, elvIndex + 2} //Check for the columns: Up, Down, and the given elevator
 			for _, btn := range btnColumns {
 
-				if MasterOrderPanel[floor][btn] == OT_Order || MasterOrderPanel[floor][btn] == OT_InProgress+elvIndex {
+				if MasterOrderPanel[floor][btn] == OT_Order || MasterOrderPanel[floor][btn] == OT_InProgress {
 
 					var button int = btn
 					if btn > 1 {
@@ -116,29 +117,23 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 						}
 
 						//if orderCost == lowestCostAllElevators {
-						if orderCost == lowestCostAllElevators && oldOrder != order {
+						if orderCost == lowestCostAllElevators {
 
 							elevator.SetPriOrder(order)
 
-							//fmt.Println("NewORDER:", order)
+							fmt.Println("NewORDER:", order, "FOR ELEVATOR", elevator)
 
-							//fmt.Println(order)
-							//fmt.Println("OLD_ORDER:")
-							//fmt.Println(oldOrder)
-							//fmt.Println("I'm old:", oldOrder, "I'm new:", order)
+							fmt.Println(order)
+							fmt.Println("OLD_ORDER:")
+							fmt.Println(oldOrder)
+							fmt.Println("I'm old:", oldOrder, "I'm new:", order)
 							if oldOrder.Floor != -1 {
 								SetOrder(MasterOrderPanel, oldOrder, OT_Order, elevator.GetIndex())
-
-								SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
-							} else {
-								SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
-								//oldOrder
-
 							}
+							SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
 
 							availableElevators[sliceIndex] = elevator
 						}
-						//fmt.Println("NEW ORDER COST:", orderCost)
 					}
 				}
 			}
@@ -162,6 +157,7 @@ func GetOrder(MasterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order e
 }
 
 func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order elevio.ButtonEvent, OrderType int, index int) {
+
 	var fl int = order.Floor
 	var bt int
 	if order.Button == elevio.BT_HallUp {
@@ -172,5 +168,4 @@ func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order 
 		bt = 2 + index
 	}
 	MasterOrderPanel[fl][bt] = OrderType
-	//fmt.Println("SETTING ORDER:", order)
 }

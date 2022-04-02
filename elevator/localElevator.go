@@ -8,7 +8,7 @@ import (
 
 func LocalInit() { //default: 15657 - Set to random then start elevatorserver to elevatorserver --port15054
 
-	elevio.Init("localhost:15054", NUMBER_OF_FLOORS)
+	elevio.Init("localhost:15055", NUMBER_OF_FLOORS)
 
 	elevio.SetDoorOpenLamp(false)
 
@@ -121,25 +121,26 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 					// 	completedOrders = append(completedOrders, priorityOrder)
 					// }
 
-					if MasterOrderPanel[currentFloor][myElevator.GetIndex()+2] == OT_InProgress {
-						cabOrder := elevio.ButtonEvent{
-							Floor:  currentFloor,
-							Button: elevio.ButtonType(elevio.BT_Cab),
-						}
+					cabOrder := elevio.ButtonEvent{
+						Floor:  currentFloor,
+						Button: elevio.ButtonType(elevio.BT_Cab),
+					}
+					upOrder := elevio.ButtonEvent{
+						Floor:  currentFloor,
+						Button: elevio.ButtonType(elevio.BT_HallUp),
+					}
+					downOrder := elevio.ButtonEvent{
+						Floor:  currentFloor,
+						Button: elevio.ButtonType(elevio.BT_HallDown),
+					}
+
+					if GetOrder(*MasterOrderPanel, cabOrder, myElevator.GetIndex()) != OT_NoOrder {
 						completedOrders = append(completedOrders, cabOrder)
 					}
-					if MasterOrderPanel[currentFloor][0] == OT_InProgress {
-						dirOrder := elevio.ButtonEvent{
-							Floor:  currentFloor,
-							Button: elevio.ButtonType(elevio.BT_HallUp),
-						}
-						completedOrders = append(completedOrders, dirOrder)
-					} else if MasterOrderPanel[currentFloor][1] == OT_InProgress {
-						dirOrder := elevio.ButtonEvent{
-							Floor:  currentFloor,
-							Button: elevio.ButtonType(elevio.BT_HallDown),
-						}
-						completedOrders = append(completedOrders, dirOrder)
+					if GetOrder(*MasterOrderPanel, upOrder, myElevator.GetIndex()) != OT_NoOrder {
+						completedOrders = append(completedOrders, upOrder)
+					} else if GetOrder(*MasterOrderPanel, downOrder, myElevator.GetIndex()) != OT_NoOrder {
+						completedOrders = append(completedOrders, downOrder)
 					}
 					takenOrders <- completedOrders
 
