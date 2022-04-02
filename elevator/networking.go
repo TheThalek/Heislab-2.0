@@ -95,6 +95,7 @@ func ExtractMasterInformation(masterMsg NetworkMessage, numFloors int, numButton
 //for master
 func ExtractSlaveInformation(slaveMsg NetworkMessage) SlaveInformation {
 	mSplit := strings.Split(slaveMsg.Content, DELIM)
+	fmt.Println("SLAVE MESSAGE", mSplit)
 	fl, _ := strconv.Atoi(mSplit[0])
 	dirInt, _ := strconv.Atoi(mSplit[1])
 	dir := elevio.MotorDirection(dirInt)

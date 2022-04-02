@@ -100,6 +100,7 @@ func PederSinOrderLogicMain() {
 						SetOrder(&MasterOrderPanel, ord, OT_NoOrder, peerID)
 					}
 					for _, ord := range slaveInfo.NewOrders {
+						//fmt.Println("NEW REMOTE ORDER", ord)
 						SetOrder(&MasterOrderPanel, ord, OT_Order, peerID)
 					}
 
@@ -116,7 +117,7 @@ func PederSinOrderLogicMain() {
 					completeOrders = compOrdersUpdate
 					var newOrdersUpdate []elevio.ButtonEvent
 					for _, ord := range newOrders {
-						if GetOrder(MasterOrderPanel, ord, peerID) == OT_Order {
+						if GetOrder(MasterOrderPanel, ord, peerID) != OT_Order {
 							newOrdersUpdate = append(newOrdersUpdate, ord)
 						}
 					}
