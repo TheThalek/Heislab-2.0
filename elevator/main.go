@@ -8,8 +8,6 @@ package main
 func main() {
 	//MS_FSM.maikenSinMain()
 	//singleFSM.ThaleSinMain()
-	go PederSinOrderLogicMain()
+	PederSinOrderLogicMain()
 	//RunSystemFSM()
-	for {
-	}
 }
