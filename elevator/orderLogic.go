@@ -152,7 +152,7 @@ func PederSinOrderLogicMain() {
 				priSlice := [NUMBER_OF_ELEVATORS]RemoteOrder{}
 				for i := 0; i < len(priSlice); i++ {
 					priSlice[i] = RemoteOrder{
-						ID:    elevatorPeers[i].GetIndex()
+						ID:    strconv.Itoa(i),
 						order: elevatorPeers[i].GetPriOrder(),
 					}
 				}
