@@ -106,9 +106,8 @@ func PederSinOrderLogicMain() {
 
 				} else if sysState == Slave && msg.Origin == MO_Master {
 					masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_COLUMNS, NUMBER_OF_ELEVATORS)
-					fmt.Println("ORDER PANEL", masterInfo.OrderPanel)
 					MasterOrderPanel = masterInfo.OrderPanel
-
+					fmt.Println("PRIORITY ORDERS:", masterInfo.Priorities)
 					var compOrdersUpdate []elevio.ButtonEvent
 					for _, ord := range completeOrders {
 						if GetOrder(MasterOrderPanel, ord, peerID) != OT_NoOrder {
@@ -123,7 +122,7 @@ func PederSinOrderLogicMain() {
 						}
 					}
 					newOrders = newOrdersUpdate
-					myElevator.SetPriOrder(masterInfo.Priorities[peerID].order)
+					myElevator.SetPriOrder(masterInfo.Priorities[id].order)
 				}
 			}
 		//SEND TO NETWORK
