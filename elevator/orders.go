@@ -4,7 +4,6 @@ import (
 	"Driver-go/elevio"
 	"fmt"
 	//"time"
-	"fmt"
 )
 
 const (
@@ -20,9 +19,7 @@ const (
 	CT_DirSwitchCost       = 100
 	CT_DoubleDirSwitchCost = 1000
 	CT_ObsCost             = 10000
-
-
-	CT_StayingPut = 100000
+	CT_StayingPut          = 100000
 )
 
 func intAbs(x int) int {
@@ -77,7 +74,7 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	if elevObstruct {
 		cost += CT_ObsCost
 	}
-	
+
 	return cost
 }
 
@@ -118,8 +115,8 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 							}
 						}
 
-						if orderCost == lowestCostAllElevators {
-						//if orderCost == lowestCostAllElevators && oldOrder != order {
+						//if orderCost == lowestCostAllElevators {
+						if orderCost == lowestCostAllElevators && oldOrder != order {
 
 							elevator.SetPriOrder(order)
 
@@ -184,6 +181,7 @@ func TimeOutElevatorOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS
 	lostOrder := lostElevator.GetPriOrder()
 	if lostOrder.Button != elevio.BT_Cab {
 		MasterOrderPanel[lostOrder.Floor][lostOrder.Button] = OT_Order
+		fmt.Println("Timed out ORDER:", lostOrder)
 	}
 }
 
