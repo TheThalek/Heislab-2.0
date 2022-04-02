@@ -84,7 +84,7 @@ func PederSinOrderLogicMain() {
 		case msg := <-receivedMessages:
 			peerID, _ := strconv.Atoi(msg.ID)
 			if peerID != id {
-				fmt.Println("We recieved the message: ", msg)
+				//fmt.Println("We recieved the message: ", msg)
 
 				if sysState == Master && msg.Origin == MO_Slave {
 					slaveInfo := ExtractSlaveInformation(msg)
@@ -100,6 +100,7 @@ func PederSinOrderLogicMain() {
 						SetOrder(&MasterOrderPanel, ord, OT_NoOrder, peerID)
 					}
 					for _, ord := range slaveInfo.NewOrders {
+						fmt.Println("REMOTE ORDER:", ord)
 						SetOrder(&MasterOrderPanel, ord, OT_Order, peerID)
 					}
 
