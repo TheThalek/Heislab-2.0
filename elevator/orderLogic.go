@@ -105,7 +105,8 @@ func PederSinOrderLogicMain() {
 					}
 
 				} else if sysState == Slave && msg.Origin == MO_Master {
-					masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_BUTTONS, NUMBER_OF_ELEVATORS)
+					masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_COLUMNS, NUMBER_OF_ELEVATORS)
+					fmt.Println("ORDER PANEL", masterInfo.OrderPanel)
 					MasterOrderPanel = masterInfo.OrderPanel
 
 					var compOrdersUpdate []elevio.ButtonEvent
