@@ -113,14 +113,14 @@ func PederSinOrderLogicMain() {
 							compOrdersUpdate = append(compOrdersUpdate, ord)
 						}
 					}
-					completeOrders = append(completeOrders, compOrdersUpdate...)
+					completeOrders = compOrdersUpdate
 					var newOrdersUpdate []elevio.ButtonEvent
 					for _, ord := range newOrders {
 						if GetOrder(MasterOrderPanel, ord, peerID) == OT_Order {
 							newOrdersUpdate = append(newOrdersUpdate, ord)
 						}
 					}
-					newOrders = append(newOrders, newOrdersUpdate...)
+					newOrders = newOrdersUpdate
 					myElevator.SetPriOrder(masterInfo.Priorities[peerID].order)
 				}
 			}
@@ -146,13 +146,15 @@ func PederSinOrderLogicMain() {
 				}
 				available = PrioritizeOrders(&MasterOrderPanel, available)
 				for _, elev := range available {
-					elevatorPeers[elev.GetIndex()].SetPriOrder(elev.GetPriOrder())
+					priorityOrder := elev.GetPriOrder()
+					index := elev.GetIndex()
+					elevatorPeers[index].SetPriOrder(priorityOrder)
 				}
 				myElevator.SetPriOrder(elevatorPeers[elevIndex].GetPriOrder())
 				priSlice := [NUMBER_OF_ELEVATORS]RemoteOrder{}
 				for i := 0; i < len(priSlice); i++ {
 					priSlice[i] = RemoteOrder{
-						ID:    strconv.Itoa(elevatorPeers[i].GetIndex()),
+						ID:    strconv.Itoa(i),
 						order: elevatorPeers[i].GetPriOrder(),
 					}
 				}
