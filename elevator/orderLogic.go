@@ -188,6 +188,7 @@ func PederSinOrderLogicMain() {
 					myElevatorlist = PrioritizeOrders(&MasterOrderPanel, myElevatorlist)
 					myElevator = myElevatorlist[0]
 
+
 					//fmt.Println("Actual order:", myElevator.GetPriOrder())
 					//TESTING PRINTING
 					//for
@@ -195,6 +196,7 @@ func PederSinOrderLogicMain() {
 
 					// fmt.Println("Actual order:", myElevator.GetPriOrder())
 					//fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
+
 
 				}
 			}

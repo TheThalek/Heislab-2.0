@@ -21,7 +21,7 @@ func LocalInit() { //default: 15657 - SEt to random then start elevatorserver to
 
 func setLights(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myElevator *Elevator) {
 	for {
-		//fmt.Println("LIGHTS PANEL", *MasterOrderPanel)
+
 		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
 			var btnColumns = []int{0, 1, myElevator.GetIndex() + 2}
 			for _, btn := range btnColumns {

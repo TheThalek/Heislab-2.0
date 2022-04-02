@@ -17,9 +17,9 @@ const (
 
 	CT_DistanceCost        = 10
 	CT_DirSwitchCost       = 100
-	CT_DoubleDirSwitchCost = 1000
-	CT_ObsCost             = 10000
-	CT_StayingPut          = 100000
+	CT_DoubleDirSwitchCost = 10000
+	CT_ObsCost             = 100000
+	CT_StayingPut          = 1000000
 )
 
 func intAbs(x int) int {
@@ -35,12 +35,24 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	elevFloor := elevator.GetCurrentFloor()
 	elevDirection := elevator.GetDirection()
 	var cost int = 0
-	if order.Floor == elevFloor && ((order.Button == elevio.BT_HallUp && elevDirection == elevio.MD_Up) || (order.Button == elevio.BT_HallDown && elevDirection == elevio.MD_Down) || order.Button == elevio.BT_Cab) {
-		return CT_MinCost
+	var previousPriorityOrder = elevator.GetPriOrder()
+	if order.Floor == elevFloor {
+		if order.Button == elevio.BT_HallUp && elevDirection == elevio.MD_Up && previousPriorityOrder.Floor == elevFloor {
+			//return CT_MinCost
+			cost += CT_MinCost
+		}
+		if order.Button == elevio.BT_HallDown && elevDirection == elevio.MD_Down && previousPriorityOrder.Floor == elevFloor {
+			//return CT_MinCost
+			cost += CT_MinCost
+		}
+		if order.Button == elevio.BT_Cab && previousPriorityOrder.Floor == elevFloor {
+			//return CT_MinCost
+			cost += CT_MinCost
+		}
 	}
 	orderFloor := order.Floor
 	if orderFloor == -1 {
-		return CT_StayingPut
+		cost += CT_StayingPut
 	}
 
 	orderDirection := 0
@@ -84,6 +96,7 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 	//for each elevator calculate the best order it should take
 	//Hvilken ordre er best for hver heis, og hvilken heis er best for ordren.
 	//Avaialble elevators assumed sorted. so that elevator 1 comes first in the range, and
+	fmt.Println("MASTERORDER PANEL:", MasterOrderPanel)
 	for sliceIndex, elevator := range availableElevators {
 		elvIndex := elevator.GetIndex()
 		oldOrderCost := calculateOrderCost(elevator.GetPriOrder(), elevator)
@@ -119,12 +132,6 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 						if orderCost == lowestCostAllElevators && oldOrder != order {
 
 							elevator.SetPriOrder(order)
-
-							fmt.Println("NewORDER:", order)
-
-							//fmt.Println(order)
-							//fmt.Println("OLD_ORDER:")
-							//fmt.Println(oldOrder)
 							fmt.Println("I'm old:", oldOrder, "I'm new:", order)
 							if oldOrder.Floor != -1 {
 								SetOrder(MasterOrderPanel, oldOrder, OT_Order, elevator.GetIndex())
@@ -138,7 +145,7 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 
 							availableElevators[sliceIndex] = elevator
 						}
-						fmt.Println("NEW ORDER COST:", orderCost)
+						fmt.Println("OLD ORDER COST:", oldOrderCost, "NEW ORDER COST:", orderCost)
 					}
 				}
 			}
