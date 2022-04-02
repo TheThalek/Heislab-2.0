@@ -2,7 +2,6 @@ package main
 
 import (
 	"Driver-go/elevio"
-	"fmt"
 	//"time"
 )
 
@@ -17,9 +16,9 @@ const (
 
 	CT_DistanceCost        = 10
 	CT_DirSwitchCost       = 100
-	CT_DoubleDirSwitchCost = 10000
-	CT_ObsCost             = 100000
-	CT_StayingPut          = 1000000
+	CT_DoubleDirSwitchCost = 1000
+	CT_ObsCost             = 10000
+	CT_StayingPut          = 100000
 )
 
 func intAbs(x int) int {
@@ -35,24 +34,12 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	elevFloor := elevator.GetCurrentFloor()
 	elevDirection := elevator.GetDirection()
 	var cost int = 0
-	var previousPriorityOrder = elevator.GetPriOrder()
-	if order.Floor == elevFloor {
-		if order.Button == elevio.BT_HallUp && elevDirection == elevio.MD_Up && previousPriorityOrder.Floor == elevFloor {
-			//return CT_MinCost
-			cost += CT_MinCost
-		}
-		if order.Button == elevio.BT_HallDown && elevDirection == elevio.MD_Down && previousPriorityOrder.Floor == elevFloor {
-			//return CT_MinCost
-			cost += CT_MinCost
-		}
-		if order.Button == elevio.BT_Cab && previousPriorityOrder.Floor == elevFloor {
-			//return CT_MinCost
-			cost += CT_MinCost
-		}
+	if order.Floor == elevFloor && ((order.Button == elevio.BT_HallUp && elevDirection == elevio.MD_Up) || (order.Button == elevio.BT_HallDown && elevDirection == elevio.MD_Down) || order.Button == elevio.BT_Cab) {
+		return CT_MinCost
 	}
 	orderFloor := order.Floor
 	if orderFloor == -1 {
-		cost += CT_StayingPut
+		return CT_StayingPut
 	}
 
 	orderDirection := 0
@@ -96,7 +83,6 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 	//for each elevator calculate the best order it should take
 	//Hvilken ordre er best for hver heis, og hvilken heis er best for ordren.
 	//Avaialble elevators assumed sorted. so that elevator 1 comes first in the range, and
-
 	for sliceIndex, elevator := range availableElevators {
 		elvIndex := elevator.GetIndex()
 		oldOrderCost := calculateOrderCost(elevator.GetPriOrder(), elevator)
@@ -132,20 +118,26 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 						if orderCost == lowestCostAllElevators && oldOrder != order {
 
 							elevator.SetPriOrder(order)
-							fmt.Println("I'm old:", oldOrder, "I'm new:", order)
+
+							//fmt.Println("NewORDER:", order)
+
+							//fmt.Println(order)
+							//fmt.Println("OLD_ORDER:")
+							//fmt.Println(oldOrder)
+							//fmt.Println("I'm old:", oldOrder, "I'm new:", order)
 							if oldOrder.Floor != -1 {
 								SetOrder(MasterOrderPanel, oldOrder, OT_Order, elevator.GetIndex())
 
-								SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
+								SetOrder(MasterOrderPanel, order, OT_InProgress+elvIndex, elevator.GetIndex())
 							} else {
-								SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
+								SetOrder(MasterOrderPanel, order, OT_InProgress+elvIndex, elevator.GetIndex())
 								//oldOrder
 
 							}
 
 							availableElevators[sliceIndex] = elevator
 						}
-						fmt.Println("OLD ORDER COST:", oldOrderCost, "NEW ORDER COST:", orderCost)
+						//fmt.Println("NEW ORDER COST:", orderCost)
 					}
 				}
 			}
@@ -179,43 +171,5 @@ func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order 
 		bt = 2 + index
 	}
 	MasterOrderPanel[fl][bt] = OrderType
-	fmt.Println("SETTING ORDER:", order)
-}
-
-//Make a function that get's the timeout message, and then sets and order back to OT_order
-
-func TimeOutElevatorOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, lostElevator Elevator) {
-	lostOrder := lostElevator.GetPriOrder()
-	if lostOrder.Button != elevio.BT_Cab {
-		MasterOrderPanel[lostOrder.Floor][lostOrder.Button] = OT_Order
-		fmt.Println("Timed out ORDER:", lostOrder)
-	}
-}
-
-//Set an order back to complete when it's been done, or if it's d
-//
-func CompletedOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, completeElevator Elevator) {
-	completeOrder := completeElevator.GetPriOrder()
-	MasterOrderPanel[completeOrder.Floor][completeOrder.Button] = OT_NoOrder
-	fmt.Println("Completed orders function:", completeOrder)
-}
-
-func maikenSinMain() {
-	//Test av Orders funksjoner
-	var elevator_1 Elevator
-	elevator_1.direction = 1
-	elevator_1.currentFloor = 1
-	elevator_1.obs = false
-	elevator_1.priOrder.Floor = 1
-	elevator_1.priOrder.Button = 1
-
-	var elevator_2 Elevator
-	elevator_2.direction = 1
-	elevator_2.currentFloor = 1
-	elevator_2.obs = false
-	elevator_2.priOrder.Floor = 1
-	elevator_2.priOrder.Button = 1
-
-	//Testing scenario:
-
+	//fmt.Println("SETTING ORDER:", order)
 }
