@@ -67,7 +67,6 @@ func PederSinOrderLogicMain() {
 			} else if role == string(MO_Slave) {
 				sysState = Slave
 			}
-			fmt.Println("MY role: ", role)
 
 		case onlinePeers := <-peerChan:
 			for i := 0; i < NUMBER_OF_ELEVATORS; i++ {
@@ -186,14 +185,6 @@ func PederSinOrderLogicMain() {
 					var myElevatorlist []Elevator = []Elevator{myElevator}
 					myElevatorlist = PrioritizeOrders(&MasterOrderPanel, myElevatorlist)
 					myElevator = myElevatorlist[0]
-
-					fmt.Println("Actual order:", myElevator.GetPriOrder())
-					//TESTING PRINTING
-					//for
-					//fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
-
-					// fmt.Println("Actual order:", myElevator.GetPriOrder())
-					// fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
 
 				}
 			}
