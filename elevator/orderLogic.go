@@ -108,17 +108,19 @@ func PederSinOrderLogicMain() {
 				MasterOrderPanel = masterInfo.OrderPanel
 
 				var compOrdersUpdate []elevio.ButtonEvent
-				for _, ord := range newOrders {
+				for _, ord := range completeOrders {
 					if GetOrder(MasterOrderPanel, ord, peerID) != OT_NoOrder {
 						compOrdersUpdate = append(compOrdersUpdate, ord)
 					}
 				}
+				completeOrders = compOrdersUpdate
 				var newOrdersUpdate []elevio.ButtonEvent
 				for _, ord := range newOrders {
 					if GetOrder(MasterOrderPanel, ord, peerID) != OT_Order {
 						newOrdersUpdate = append(newOrdersUpdate, ord)
 					}
 				}
+				newOrders = newOrdersUpdate
 				myElevator.SetPriOrder(masterInfo.Priorities[peerID].order)
 			}
 
