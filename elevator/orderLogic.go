@@ -108,14 +108,14 @@ func PederSinOrderLogicMain() {
 					//fmt.Println("PRIORITY ORDERS:", masterInfo.Priorities)
 					var compOrdersUpdate []elevio.ButtonEvent
 					for _, ord := range completeOrders {
-						if GetOrder(MasterOrderPanel, ord, peerID) != OT_NoOrder {
+						if GetOrder(MasterOrderPanel, ord, id) != OT_NoOrder {
 							compOrdersUpdate = append(compOrdersUpdate, ord)
 						}
 					}
 					completeOrders = compOrdersUpdate
 					var newOrdersUpdate []elevio.ButtonEvent
 					for _, ord := range newOrders {
-						if GetOrder(MasterOrderPanel, ord, peerID) != OT_Order {
+						if GetOrder(MasterOrderPanel, ord, id) == OT_NoOrder {
 							newOrdersUpdate = append(newOrdersUpdate, ord)
 						}
 					}
@@ -172,6 +172,7 @@ func PederSinOrderLogicMain() {
 					NewOrders:       newOrders,
 					CompletedOrders: completeOrders,
 				}
+				//fmt.Println("SLAVE SEND", slaveInfo)
 				msgTx <- NewSlaveMessage(strconv.Itoa(id), slaveInfo)
 				//If it's not online it needs to handle it's own prioritized order same as master
 				if myElevator.GetOnline() == false {
