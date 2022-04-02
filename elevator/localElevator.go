@@ -73,7 +73,6 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 	drv_obstr := make(chan bool)
 	priOrderChan := make(chan elevio.ButtonEvent)
 
-
 	go elevio.PollButtons(drv_buttons)
 	go elevio.PollFloorSensor(drv_floors)
 	go elevio.PollObstructionSwitch(drv_obstr)
@@ -104,7 +103,7 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 					} else if currentPriorder.Button == elevio.BT_HallDown {
 						myElevator.SetDirection(elevio.MD_Down)
 					}
-					
+
 					//open doors
 
 					doorOpen = true
@@ -114,14 +113,14 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 
 					//clear the relevant orders
 					var completedOrders []elevio.ButtonEvent
-					compltOrder := currentPriorder
+					//compltOrder := currentPriorder
 					//MAIKEN DU HOLDER PÅ HER!
-					if compltOrder.Button == elevio.BT_Cab{
-						compltOrder.Button = elevio.BT_Cab+myElevator.GetIndex()
-					}
-					if MasterOrderPanel[currentFloor][compltOrder.Button] = OT_NoOrder{
-						completedOrders = append(completedOrders, currentPriorder)
-					}
+					// if compltOrder.Button == elevio.BT_Cab{
+					// 	compltOrder.Button = elevio.BT_Cab+myElevator.GetIndex()
+					// }
+					// if MasterOrderPanel[currentFloor][compltOrder.Button] = OT_NoOrder{
+					// 	completedOrders = append(completedOrders, currentPriorder)
+					// }
 
 					if MasterOrderPanel[currentFloor][myElevator.GetIndex()+2] == OT_InProgress {
 						cabOrder := elevio.ButtonEvent{
