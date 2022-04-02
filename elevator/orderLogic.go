@@ -45,7 +45,7 @@ func PederSinOrderLogicMain() {
 	elevatorPeers[elevIndex] = &myElevator
 
 	msgTx := make(chan NetworkMessage)
-	receivedMessages := make(chan NetworkMessage)
+	receivedMessages := make(chan NetworkMessage, NUMBER_OF_ELEVATORS)
 	roleChan := make(chan string)
 	peerChan := make(chan []int)
 
@@ -69,6 +69,7 @@ func PederSinOrderLogicMain() {
 			}
 
 		case onlinePeers := <-peerChan:
+			fmt.Println("THESE ARE ONLINE PEERS:", onlinePeers)
 			for i := 0; i < NUMBER_OF_ELEVATORS; i++ {
 				if isInSliceInt(i, onlinePeers) {
 					elevatorPeers[i].SetOnline(true)
@@ -83,45 +84,47 @@ func PederSinOrderLogicMain() {
 		//RECEIVE FROM NETWORK
 		case msg := <-receivedMessages:
 			peerID, _ := strconv.Atoi(msg.ID)
+
 			if peerID != id {
-				fmt.Println("We recieved the message: ", msg)
-			}
-			if sysState == Master && msg.Origin == MO_Slave {
-				slaveInfo := ExtractSlaveInformation(msg)
-				newElev := Elevator{
-					direction:    slaveInfo.direction,
-					currentFloor: slaveInfo.currentFloor,
-					obs:          slaveInfo.obs,
-					priOrder:     elevatorPeers[peerID].priOrder,
-					index:        peerID,
-				}
-				elevatorPeers[peerID] = &newElev
-				for _, ord := range slaveInfo.CompletedOrders {
-					SetOrder(&MasterOrderPanel, ord, OT_NoOrder, peerID)
-				}
-				for _, ord := range slaveInfo.NewOrders {
-					SetOrder(&MasterOrderPanel, ord, OT_Order, peerID)
-				}
+				//fmt.Println("We recieved the message: ", msg)
 
-			} else if sysState == Slave && msg.Origin == MO_Master {
-				masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_BUTTONS, NUMBER_OF_ELEVATORS)
-				MasterOrderPanel = masterInfo.OrderPanel
+				if sysState == Master && msg.Origin == MO_Slave {
+					slaveInfo := ExtractSlaveInformation(msg)
+					newElev := Elevator{
+						direction:    slaveInfo.direction,
+						currentFloor: slaveInfo.currentFloor,
+						obs:          slaveInfo.obs,
+						priOrder:     elevatorPeers[peerID].priOrder,
+						index:        peerID,
+					}
+					elevatorPeers[peerID] = &newElev
+					for _, ord := range slaveInfo.CompletedOrders {
+						SetOrder(&MasterOrderPanel, ord, OT_NoOrder, peerID)
+					}
+					for _, ord := range slaveInfo.NewOrders {
+						SetOrder(&MasterOrderPanel, ord, OT_Order, peerID)
+					}
 
-				var compOrdersUpdate []elevio.ButtonEvent
-				for _, ord := range completeOrders {
-					if GetOrder(MasterOrderPanel, ord, peerID) != OT_NoOrder {
-						compOrdersUpdate = append(compOrdersUpdate, ord)
+				} else if sysState == Slave && msg.Origin == MO_Master {
+					masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_BUTTONS, NUMBER_OF_ELEVATORS)
+					MasterOrderPanel = masterInfo.OrderPanel
+
+					var compOrdersUpdate []elevio.ButtonEvent
+					for _, ord := range completeOrders {
+						if GetOrder(MasterOrderPanel, ord, peerID) != OT_NoOrder {
+							compOrdersUpdate = append(compOrdersUpdate, ord)
+						}
 					}
-				}
-				completeOrders = compOrdersUpdate
-				var newOrdersUpdate []elevio.ButtonEvent
-				for _, ord := range newOrders {
-					if GetOrder(MasterOrderPanel, ord, peerID) != OT_Order {
-						newOrdersUpdate = append(newOrdersUpdate, ord)
+					completeOrders = compOrdersUpdate
+					var newOrdersUpdate []elevio.ButtonEvent
+					for _, ord := range newOrders {
+						if GetOrder(MasterOrderPanel, ord, peerID) != OT_Order {
+							newOrdersUpdate = append(newOrdersUpdate, ord)
+						}
 					}
+					newOrders = newOrdersUpdate
+					myElevator.SetPriOrder(masterInfo.Priorities[peerID].order)
 				}
-				newOrders = newOrdersUpdate
-				myElevator.SetPriOrder(masterInfo.Priorities[peerID].order)
 			}
 
 		//SEND TO NETWORK
@@ -140,10 +143,13 @@ func PederSinOrderLogicMain() {
 
 				var available []Elevator
 				for _, elev := range elevatorPeers {
+					// fmt.Println("PEER:", *elev)
 					if elev.GetOnline() == true {
 						available = append(available, *elev)
 					}
 				}
+				// fmt.Println("+++++++++++++++++++++++++++")
+
 				available = PrioritizeOrders(&MasterOrderPanel, available)
 				for _, elev := range available {
 					priorityOrder := elev.GetPriOrder()

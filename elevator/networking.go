@@ -107,7 +107,6 @@ func ExtractSlaveInformation(slaveMsg NetworkMessage) SlaveInformation {
 	nOrds := []elevio.ButtonEvent{}
 	cOrds := []elevio.ButtonEvent{}
 	nOrdsStringArray := strings.Split(mSplit[3], " ")
-	fmt.Println("Orderstring>>", nOrdsStringArray)
 	if fmt.Sprint(nOrdsStringArray) != "[]" {
 		for i := 0; i < len(nOrdsStringArray); i = i + 2 {
 			fl, _ := strconv.Atoi(nOrdsStringArray[i])
@@ -123,7 +122,6 @@ func ExtractSlaveInformation(slaveMsg NetworkMessage) SlaveInformation {
 			cOrds = append(cOrds, elevio.ButtonEvent{Floor: fl, Button: elevio.ButtonType(bt_int)})
 		}
 	}
-	fmt.Println(cOrds, nOrds)
 	return SlaveInformation{direction: dir, currentFloor: fl, obs: ob, NewOrders: nOrds, CompletedOrders: cOrds}
 }
 
@@ -198,9 +196,7 @@ func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages c
 			fmt.Println("  Peers:    \n", networkPeers)
 			fmt.Println("  New:      \n", p.New)
 			fmt.Println("  Lost:     \n", p.Lost)
-			if len(p.Lost) > 0 {
-				peerChan <- networkPeers
-			}
+			peerChan <- networkPeers
 		case a := <-msgRx:
 			b := StringToNetworkMsg(a.MessageString)
 			if b.Origin == MO_Master && len(networkPeers) > 1 {
