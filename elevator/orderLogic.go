@@ -100,8 +100,10 @@ func PederSinOrderLogicMain() {
 						SetOrder(&MasterOrderPanel, ord, OT_Order, peerID)
 					}
 					for _, ord := range slaveInfo.CompletedOrders {
-						fmt.Println("COMPLETED ORDER", ord)
+						//fmt.Println("COMPLETED ORDER", ord)
 						SetOrder(&MasterOrderPanel, ord, OT_NoOrder, peerID)
+						invalidOrder := elevio.ButtonEvent{Floor: -1}
+						elevatorPeers[peerID].SetPriOrder(invalidOrder) //HERE WAS THE SOLUTION!!
 					}
 				} else if sysState == Slave && msg.Origin == MO_Master {
 					masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_COLUMNS, NUMBER_OF_ELEVATORS)
@@ -145,7 +147,7 @@ func PederSinOrderLogicMain() {
 					}
 				}
 				available = PrioritizeOrders(&MasterOrderPanel, available)
-				//fmt.Println("Available", available)
+
 				for _, elev := range available {
 					priorityOrder := elev.GetPriOrder()
 					index := elev.GetIndex()

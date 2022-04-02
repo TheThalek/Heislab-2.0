@@ -88,6 +88,8 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 		elvIndex := elevator.GetIndex()
 		oldOrderCost := calculateOrderCost(elevator.GetPriOrder(), elevator)
 		oldOrder := elevator.GetPriOrder()
+
+
 		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
 			var btnColumns = []int{0, 1, elvIndex + 2} //Check for the columns: Up, Down, and the given elevator
 			for _, btn := range btnColumns {
@@ -117,7 +119,7 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 						}
 
 						//if orderCost == lowestCostAllElevators {
-						if orderCost == lowestCostAllElevators {
+						if orderCost == lowestCostAllElevators && order != oldOrder {
 
 							elevator.SetPriOrder(order)
 
