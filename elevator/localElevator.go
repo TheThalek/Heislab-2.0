@@ -21,7 +21,6 @@ func LocalInit() { //default: 15657 - SEt to random then start elevatorserver to
 
 func setLights(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myElevator *Elevator) {
 	for {
-
 		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
 			var btnColumns = []int{0, 1, myElevator.GetIndex() + 2}
 			for _, btn := range btnColumns {
@@ -42,7 +41,6 @@ func setLights(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myEle
 				elevio.SetButtonLamp(btnType, floor, lightValue)
 			}
 		}
-		time.Sleep(PERIOD)
 	}
 }
 
@@ -95,7 +93,8 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 				if currentFloor != priorityOrder.Floor {
 					//Elevator is not on the prioritized floor
 					myElevator.DriveTo(priorityOrder)
-				} else if !moving && priorityOrder.Floor == currentFloor {
+				}
+				if !moving && priorityOrder.Floor == currentFloor {
 					//Not moving and elevator is at the correct floor
 					//Switch direction to suit the order it's priorityOrder
 					if priorityOrder.Button == elevio.BT_HallUp {
@@ -142,13 +141,14 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 						}
 						completedOrders = append(completedOrders, dirOrder)
 					}
+
 					takenOrders <- completedOrders
 
 					//set priority to an invalid order
 					var priorityOrder elevio.ButtonEvent
 					priorityOrder.Floor = -1
 					myElevator.SetPriOrder(priorityOrder)
-					fmt.Println("Cleared in local elevator", priorityOrder)
+					//fmt.Println("Cleared in local elevator", priorityOrder)
 					//open door
 					if !myElevator.GetObs() {
 						doorOpen = false
