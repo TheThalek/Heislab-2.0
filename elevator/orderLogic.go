@@ -56,8 +56,10 @@ func PederSinOrderLogicMain() {
 		select {
 		case cOrds := <-completeOrderChan:
 			completeOrders = append(completeOrders, cOrds...)
+
 		case nOrds := <-newOrderChan:
 			newOrders = append(newOrders, nOrds)
+
 			//fmt.Println(newOrders)
 		case role := <-roleChan:
 			if role == string(MO_Master) {
@@ -110,7 +112,7 @@ func PederSinOrderLogicMain() {
 				masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_COLUMNS, NUMBER_OF_ELEVATORS)
 				if peerID != id {
 					MasterOrderPanel = masterInfo.OrderPanel
-					fmt.Println("RECEIVED THIS PRIORITY ORDER", masterInfo.Priorities[id])
+					//fmt.Println("RECEIVED THIS PRIORITY ORDER", masterInfo.Priorities[id])
 				}
 
 				var compOrdersUpdate []elevio.ButtonEvent
@@ -175,7 +177,7 @@ func PederSinOrderLogicMain() {
 						order: elevatorPeers[i].GetPriOrder(),
 					}
 				}
-				fmt.Println("PRIORITY ORDERS>>", priSlice)
+				//fmt.Println("PRIORITY ORDERS>>", priSlice)
 				masterInfo := MasterInformation{
 					OrderPanel: MasterOrderPanel,
 					Priorities: priSlice,
@@ -226,6 +228,5 @@ func PederSinOrderLogicMain() {
 				}
 			}
 		}
-		//time.Sleep(PERIOD)
 	}
 }
