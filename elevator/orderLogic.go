@@ -108,6 +108,7 @@ func PederSinOrderLogicMain() {
 				} else if sysState == Slave && msg.Origin == MO_Master {
 					masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_COLUMNS, NUMBER_OF_ELEVATORS)
 					MasterOrderPanel = masterInfo.OrderPanel
+
 					//fmt.Println("PRIORITY ORDERS:", masterInfo.Priorities)
 					var compOrdersUpdate []elevio.ButtonEvent
 					for _, ord := range completeOrders {
@@ -128,7 +129,7 @@ func PederSinOrderLogicMain() {
 			}
 		//SEND TO NETWORK
 		default:
-			elevatorPeers[elevIndex] = &myElevator
+			fmt.Println(MasterOrderPanel)
 			switch sysState {
 			case Master:
 				for _, ord := range newOrders {
