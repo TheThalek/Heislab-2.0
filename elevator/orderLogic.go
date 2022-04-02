@@ -53,7 +53,6 @@ func PederSinOrderLogicMain() {
 
 	sysState = Slave
 	for {
-
 		select {
 		case cOrds := <-completeOrderChan:
 			completeOrders = append(completeOrders, cOrds...)
@@ -84,30 +83,29 @@ func PederSinOrderLogicMain() {
 		case msg := <-receivedMessages:
 			peerID, _ := strconv.Atoi(msg.ID)
 			if peerID != id {
-				//fmt.Println("We recieved the message: ", msg)
 
 				if sysState == Master && msg.Origin == MO_Slave {
 					slaveInfo := ExtractSlaveInformation(msg)
+					//fmt.Println(slaveInfo)
 					newElev := Elevator{
 						direction:    slaveInfo.direction,
 						currentFloor: slaveInfo.currentFloor,
 						obs:          slaveInfo.obs,
 						priOrder:     elevatorPeers[peerID].priOrder,
 						index:        peerID,
+						online:       true,
 					}
 					elevatorPeers[peerID] = &newElev
 					for _, ord := range slaveInfo.CompletedOrders {
 						SetOrder(&MasterOrderPanel, ord, OT_NoOrder, peerID)
 					}
 					for _, ord := range slaveInfo.NewOrders {
-						//fmt.Println("NEW REMOTE ORDER", ord)
 						SetOrder(&MasterOrderPanel, ord, OT_Order, peerID)
 					}
-
 				} else if sysState == Slave && msg.Origin == MO_Master {
 					masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_COLUMNS, NUMBER_OF_ELEVATORS)
 					MasterOrderPanel = masterInfo.OrderPanel
-					fmt.Println("PRIORITY ORDERS:", masterInfo.Priorities)
+					//fmt.Println("PRIORITY ORDERS:", masterInfo.Priorities)
 					var compOrdersUpdate []elevio.ButtonEvent
 					for _, ord := range completeOrders {
 						if GetOrder(MasterOrderPanel, ord, peerID) != OT_NoOrder {
@@ -146,6 +144,7 @@ func PederSinOrderLogicMain() {
 					}
 				}
 				available = PrioritizeOrders(&MasterOrderPanel, available)
+				//fmt.Println("Available", available)
 				for _, elev := range available {
 					priorityOrder := elev.GetPriOrder()
 					index := elev.GetIndex()

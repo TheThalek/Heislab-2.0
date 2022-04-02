@@ -107,6 +107,7 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 						if btn != elvIndex+2 { //if the btn pushed is not a cab-call, compare with the other elevators
 							for _, elv := range availableElevators {
 								cmprCost := calculateOrderCost(order, elv)
+								//fmt.Println("FOR ELEVATOR", elv, "THE COST IS", cmprCost)
 								if cmprCost < orderCost {
 									lowestCostAllElevators = cmprCost
 									break
