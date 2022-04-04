@@ -41,7 +41,7 @@ func setLights(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myEle
 				elevio.SetButtonLamp(btnType, floor, lightValue)
 			}
 		}
-	q	time.Sleep(PERIOD)
+		time.Sleep(PERIOD)
 	}
 }
 

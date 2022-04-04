@@ -51,8 +51,11 @@ func PederSinOrderLogicMain() {
 
 	go RunNetworkInterface(id, msgTx, receivedMessages, roleChan, peerChan)
 
+	go CheckOrderTimeout(&MasterOrderPanel, elevatorPeers)
+
 	sysState = Slave
 	for {
+		//fmt.Println(MasterOrderPanel)
 		select {
 		case cOrds := <-completeOrderChan:
 			completeOrders = append(completeOrders, cOrds...)
@@ -186,6 +189,7 @@ func PederSinOrderLogicMain() {
 					newOrders = []elevio.ButtonEvent{}
 					for _, ord := range completeOrders {
 						SetOrder(&MasterOrderPanel, ord, OT_NoOrder, myElevator.GetIndex())
+						fmt.Println("I've COMPLETED THIS ORDER:", ord)
 					}
 					completeOrders = []elevio.ButtonEvent{}
 
