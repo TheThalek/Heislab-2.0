@@ -216,7 +216,7 @@ func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order 
 func CheckOrderTimeout(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myElevatorList [NUMBER_OF_ELEVATORS]*Elevator) {
 	var inProgressTimers []*time.Time
 	var inProgressOrders []elevio.ButtonEvent
-	timeout := 8 * time.Second
+	timeout := 2 * NUMBER_OF_ELEVATORS * time.Second
 	for {
 		for i := 0; i < NUMBER_OF_FLOORS; i++ {
 			for j := 0; j < NUMBER_OF_COLUMNS; j++ {
@@ -242,15 +242,31 @@ func CheckOrderTimeout(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]in
 			if time.Since(*t) > timeout {
 				//fmt.Println("ORDER TIMEOUT!", inProgressOrders[index])
 				SetOrder(MasterOrderPanel, inProgressOrders[index], OT_Order, 0)
+				for i := 0; i < len(myElevatorList); i++ {
+					if myElevatorList[i].GetPriOrder() == inProgressOrders[index] {
+						myElevatorList[i].SetOnline(false)
+					}
+				}
+
 			} else if GetOrder(*MasterOrderPanel, inProgressOrders[index], 0) != OT_NoOrder {
 				orderTimersUpdate = append(orderTimersUpdate, inProgressTimers[index])
 				ordersUpdate = append(ordersUpdate, inProgressOrders[index])
 			}
+
 		}
 		inProgressOrders = ordersUpdate
 		inProgressTimers = orderTimersUpdate
 
 		time.Sleep(PERIOD)
+	}
+}
+
+func RestoreOnline(myElevatorList [NUMBER_OF_ELEVATORS]*Elevator) {
+	for {
+		for _, elev := range len(myElevatorList) {
+			elev.SetOnline(true)
+			time.Sleep(10 * time.Second)
+		}
 	}
 }
 

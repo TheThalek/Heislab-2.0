@@ -52,6 +52,8 @@ func PederSinOrderLogicMain() {
 
 	go CheckOrderTimeout(&MasterOrderPanel, elevatorPeers)
 
+	go RestoreOnline(elevatorPeers)
+
 	sysState = Slave
 	for {
 		//fmt.Println(MasterOrderPanel)
