@@ -134,11 +134,11 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 
 							elevator.SetPriOrder(order)
 
-							fmt.Println("NewORDER:", order, "FOR ELEVATOR", elevator)
+							// fmt.Println("NewORDER:", order, "FOR ELEVATOR", elevator)
 
-							fmt.Println("I'm old:", oldOrder, "I'm new:", order)
+							// fmt.Println("I'm old:", oldOrder, "I'm new:", order)
 
-							fmt.Println("ELEV DIR:", elevator.GetDirection())
+							// fmt.Println("ELEV DIR:", elevator.GetDirection())
 
 							SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
 

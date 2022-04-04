@@ -2,7 +2,6 @@ package main
 
 import (
 	"Driver-go/elevio"
-	"fmt"
 	"strconv"
 )
 
@@ -112,7 +111,7 @@ func PederSinOrderLogicMain() {
 					masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_COLUMNS, NUMBER_OF_ELEVATORS)
 					MasterOrderPanel = masterInfo.OrderPanel
 
-					fmt.Println("Master ORDERS", MasterOrderPanel)
+					// fmt.Println("Master ORDERS", MasterOrderPanel)
 					var compOrdersUpdate []elevio.ButtonEvent
 					for _, ord := range completeOrders {
 						if GetOrder(MasterOrderPanel, ord, id) != OT_NoOrder {
