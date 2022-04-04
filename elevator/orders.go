@@ -134,9 +134,6 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 
 							fmt.Println("I'm old:", oldOrder, "I'm new:", order)
 
-							if oldOrder.Floor != -1 {
-								SetOrder(MasterOrderPanel, oldOrder, OT_Order, elevator.GetIndex())
-							}
 							SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
 
 							availableElevators[sliceIndex] = elevator
@@ -144,11 +141,28 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 						fmt.Println("MASTER PANEL", MasterOrderPanel)
 						fmt.Println("OLD ORDER COST:", oldOrderCost, "NEW ORDER COST:", orderCost)
 					}
-
 				}
 			}
 		}
 	}
+	for fl := 0; fl < NUMBER_OF_FLOORS; fl++ {
+		for col := 0; col < NUMBER_OF_COLUMNS; col++ {
+			button := col
+			if col > 1 {
+				button = 2
+			}
+			order := elevio.ButtonEvent{
+				Floor:  fl,
+				Button: elevio.ButtonType(button),
+			}
+			for _, elev := range availableElevators {
+				if GetOrder(*MasterOrderPanel, order, elev.GetIndex()) == OT_InProgress && order != elev.GetPriOrder() {
+					SetOrder(MasterOrderPanel, order, OT_Order, elev.GetIndex())
+				}
+			}
+		}
+	}
+
 	//or return list of priority orders -->available elevators
 	return availableElevators
 }
@@ -167,7 +181,7 @@ func GetOrder(MasterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order e
 }
 
 func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order elevio.ButtonEvent, OrderType int, index int) {
-	fmt.Println("SETTING ORDER", order, "to", OrderType)
+	//fmt.Println("SETTING ORDER", order, "to", OrderType)
 	var fl int = order.Floor
 	var bt int
 	if order.Button == elevio.BT_HallUp {
