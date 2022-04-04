@@ -2,7 +2,6 @@ package main
 
 import (
 	"Driver-go/elevio"
-	"fmt"
 	"time"
 )
 
@@ -34,14 +33,13 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	//Add cost of obstruction
 
 	elevFloor := elevator.GetCurrentFloor()
-	//elevDirection := elevator.GetDirection()
+	elevDirection := elevator.GetDirection()
 	var cost int = 0
 	orderFloor := order.Floor
-	//orderDirection := 0
+	orderDirection := 0
 
 	cost += CT_DistanceCost * intAbs(orderFloor-elevFloor)
 
-	//var previousPriorityOrder = elevator.GetPriOrder()
 	if orderFloor == elevFloor {
 		cost += CT_MinCost
 	}
@@ -50,11 +48,16 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 		cost += CT_StayingPut
 	}
 
-	// if elevFloor < orderFloor {
-	// 	orderDirection = int(elevio.MD_Up)
-	// } else if elevFloor > orderFloor {
-	// 	orderDirection = int(elevio.MD_Down)
-	// }
+	if elevFloor < orderFloor {
+		orderDirection = int(elevio.MD_Up)
+	} else if elevFloor > orderFloor {
+		orderDirection = int(elevio.MD_Down)
+	}
+
+	if orderDirection != int(elevDirection) && elevDirection != 0 {
+		cost += CT_DirSwitchCost
+	}
+	// fmt.Println("ORDER DIR", orderDirection, "ELEV DIR", elevDirection)
 
 	// //buttonDirection := orderDirection
 	// if order.Button == elevio.BT_HallUp {
@@ -117,7 +120,6 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 						if btn != elvIndex+2 { //if the btn pushed is not a cab-call, compare with the other elevators
 							for _, elv := range availableElevators {
 								cmprCost := calculateOrderCost(order, elv)
-								//fmt.Println("FOR ELEVATOR", elv, "THE COST IS", cmprCost)
 								if cmprCost < orderCost {
 									lowestCostAllElevators = cmprCost
 									break
@@ -130,16 +132,17 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 
 							elevator.SetPriOrder(order)
 
-							//fmt.Println("NewORDER:", order, "FOR ELEVATOR", elevator)
+							// fmt.Println("NewORDER:", order, "FOR ELEVATOR", elevator)
 
-							//fmt.Println("I'm old:", oldOrder, "I'm new:", order)
+							// fmt.Println("I'm old:", oldOrder, "I'm new:", order)
+
+							// fmt.Println("ELEV DIR:", elevator.GetDirection())
 
 							SetOrder(MasterOrderPanel, order, OT_InProgress, elevator.GetIndex())
 
 							availableElevators[sliceIndex] = elevator
 						}
 						//fmt.Println("MASTER PANEL", MasterOrderPanel)
-						//fmt.Println("OLD ORDER COST:", oldOrderCost, "NEW ORDER COST:", orderCost)
 					}
 				}
 			}
@@ -158,8 +161,18 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 			for _, elev := range availableElevators {
 				priOrder := elev.GetPriOrder()
 				if GetOrder(*MasterOrderPanel, order, elev.GetIndex()) == OT_InProgress && order != priOrder && priOrder.Floor != -1 {
-					fmt.Println("UNCLAIMING ORDER", order)
+					//fmt.Println("UNCLAIMING ORDER", order)
 					SetOrder(MasterOrderPanel, order, OT_Order, elev.GetIndex())
+				}
+			}
+		}
+	}
+	if len(availableElevators) > 1 {
+		for i := 0; i < len(availableElevators); i++ {
+			for j := 0; j < len(availableElevators); j++ {
+				if i != j && availableElevators[i].GetPriOrder() == availableElevators[j].GetPriOrder() {
+					invalidOrder := elevio.ButtonEvent{Floor: -1}
+					availableElevators[j].SetPriOrder(invalidOrder)
 				}
 			}
 		}
@@ -184,7 +197,7 @@ func GetOrder(MasterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order e
 }
 
 func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order elevio.ButtonEvent, OrderType int, index int) {
-	//fmt.Println("SETTING ORDER", order, "to", OrderType)
+	//fmt.Println("SETTING ORDER", order, "to", OrderType)//
 	var fl int = order.Floor
 	var bt int
 	if order.Button == elevio.BT_HallUp {
@@ -200,13 +213,17 @@ func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order 
 func CheckOrderTimeout(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myElevatorList [NUMBER_OF_ELEVATORS]*Elevator) {
 	var inProgressTimers []*time.Time
 	var inProgressOrders []elevio.ButtonEvent
-	timeout := 8 * time.Second
+	timeout := 4 * time.Second
 	for {
 		for i := 0; i < NUMBER_OF_FLOORS; i++ {
-			for j := 0; j < 2; j++ {
+			for j := 0; j < NUMBER_OF_COLUMNS; j++ {
+				btn := j
+				if btn > 2 {
+					btn = 2
+				}
 				order := elevio.ButtonEvent{
 					Floor:  i,
-					Button: elevio.ButtonType(j),
+					Button: elevio.ButtonType(btn),
 				}
 				if GetOrder(*MasterOrderPanel, order, 0) == OT_InProgress && !orderIsInSlice(order, inProgressOrders) {
 					inProgressOrders = append(inProgressOrders, order)
@@ -222,15 +239,31 @@ func CheckOrderTimeout(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]in
 			if time.Since(*t) > timeout {
 				//fmt.Println("ORDER TIMEOUT!", inProgressOrders[index])
 				SetOrder(MasterOrderPanel, inProgressOrders[index], OT_Order, 0)
+				for i := 0; i < len(myElevatorList); i++ {
+					if myElevatorList[i].GetPriOrder() == inProgressOrders[index] {
+						myElevatorList[i].SetOnline(false)
+					}
+				}
+
 			} else if GetOrder(*MasterOrderPanel, inProgressOrders[index], 0) != OT_NoOrder {
 				orderTimersUpdate = append(orderTimersUpdate, inProgressTimers[index])
 				ordersUpdate = append(ordersUpdate, inProgressOrders[index])
 			}
+
 		}
 		inProgressOrders = ordersUpdate
 		inProgressTimers = orderTimersUpdate
 
 		time.Sleep(PERIOD)
+	}
+}
+
+func RestoreOnline(myElevatorList [NUMBER_OF_ELEVATORS]*Elevator) {
+	for {
+		time.Sleep(20 * time.Second)
+		for _, elev := range myElevatorList {
+			elev.SetOnline(true)
+		}
 	}
 }
 
