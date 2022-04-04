@@ -184,7 +184,7 @@ func GetOrder(MasterOrderPanel [NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order e
 }
 
 func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order elevio.ButtonEvent, OrderType int, index int) {
-	//fmt.Println("SETTING ORDER", order, "to", OrderType)
+	//fmt.Println("SETTING ORDER", order, "to", OrderType)//
 	var fl int = order.Floor
 	var bt int
 	if order.Button == elevio.BT_HallUp {
