@@ -164,6 +164,16 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 			}
 		}
 	}
+	if len(availableElevators) > 1 {
+		for i := 0; i < len(availableElevators); i++ {
+			for j := 0; j < len(availableElevators); j++ {
+				if i != j && availableElevators[i].GetPriOrder() == availableElevators[j].GetPriOrder() {
+					invalidOrder := elevio.ButtonEvent{Floor: -1}
+					availableElevators[j].SetPriOrder(invalidOrder)
+				}
+			}
+		}
+	}
 
 	//or return list of priority orders -->available elevators
 	//fmt.Println("AVAILABLE:", availableElevators)
