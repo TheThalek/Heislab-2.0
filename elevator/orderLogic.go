@@ -42,6 +42,7 @@ func PederSinOrderLogicMain() {
 	}
 
 	elevatorPeers[elevIndex] = &myElevator
+	onlinePeers := []int{}
 
 	msgTx := make(chan NetworkMessage)
 	receivedMessages := make(chan NetworkMessage, NUMBER_OF_ELEVATORS)
@@ -71,7 +72,7 @@ func PederSinOrderLogicMain() {
 				sysState = Slave
 			}
 
-		case onlinePeers := <-peerChan:
+		case onlinePeers = <-peerChan:
 			for i := 0; i < NUMBER_OF_ELEVATORS; i++ {
 				if isInSliceInt(i, onlinePeers) {
 					elevatorPeers[i].SetOnline(true)
@@ -182,7 +183,7 @@ func PederSinOrderLogicMain() {
 				//fmt.Println("SLAVE SEND", slaveInfo)
 				msgTx <- NewSlaveMessage(strconv.Itoa(id), slaveInfo)
 				//If it's not online it needs to handle it's own prioritized order same as master
-				if myElevator.GetOnline() == false {
+				if len(onlinePeers) <= 1 {
 
 					for _, ord := range newOrders {
 						SetOrder(&MasterOrderPanel, ord, OT_Order, myElevator.GetIndex())
