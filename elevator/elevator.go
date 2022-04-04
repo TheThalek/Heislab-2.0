@@ -41,7 +41,9 @@ func (e *Elevator) SetFloor(floor int) {
 	e.currentFloor = floor
 }
 func (e *Elevator) SetDirection(dir elevio.MotorDirection) {
-	e.direction = dir
+	if dir != 0 {
+		e.direction = dir
+	}
 }
 func (e *Elevator) SetPriOrder(priOrder elevio.ButtonEvent) {
 	e.priOrder = priOrder
