@@ -58,7 +58,7 @@ func NewMasterMessage(id string, info MasterInformation) NetworkMessage {
 	return newNetworkMessage(MO_Master, id, infoString)
 }
 func NewSlaveMessage(id string, info SlaveInformation) NetworkMessage {
-	return newNetworkMessage(MO_Slave, id, strconv.Itoa(info.currentFloor)+DELIM+fmt.Sprint(info.direction)+DELIM+strconv.FormatBool(info.obs)+DELIM+fmt.Sprint(info.CompletedOrders)+DELIM+fmt.Sprint(info.NewOrders))
+	return newNetworkMessage(MO_Slave, id, strconv.Itoa(info.currentFloor)+DELIM+fmt.Sprint(info.direction)+DELIM+strconv.FormatBool(info.obs)+DELIM+fmt.Sprint(info.NewOrders)+DELIM+fmt.Sprint(info.CompletedOrders))
 }
 
 func StringToNetworkMsg(msg string) NetworkMessage {
@@ -102,10 +102,12 @@ func ExtractSlaveInformation(slaveMsg NetworkMessage) SlaveInformation {
 	mSplit[3] = strings.Trim(mSplit[3], "[{}]")
 	mSplit[3] = strings.ReplaceAll(mSplit[3], "} {", " ")
 	mSplit[4] = strings.Trim(mSplit[4], "[{}]")
+
 	mSplit[4] = strings.ReplaceAll(mSplit[4], "} {", " ")
 
 	nOrds := []elevio.ButtonEvent{}
 	cOrds := []elevio.ButtonEvent{}
+
 	nOrdsStringArray := strings.Split(mSplit[3], " ")
 	if fmt.Sprint(nOrdsStringArray) != "[]" {
 		for i := 0; i < len(nOrdsStringArray); i = i + 2 {
