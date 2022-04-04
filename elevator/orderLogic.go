@@ -51,9 +51,11 @@ func PederSinOrderLogicMain() {
 
 	go RunNetworkInterface(id, msgTx, receivedMessages, roleChan, peerChan)
 
+	go CheckOrderTimeout(&MasterOrderPanel, elevatorPeers)
+
 	sysState = Slave
 	for {
-
+		//fmt.Println(MasterOrderPanel)
 		select {
 		case cOrds := <-completeOrderChan:
 			completeOrders = append(completeOrders, cOrds...)
@@ -63,7 +65,7 @@ func PederSinOrderLogicMain() {
 		case role := <-roleChan:
 			if role == string(MO_Master) {
 				sysState = Master
-				fmt.Println("MY role: ", role)
+				//fmt.Println("MY role: ", role)
 			} else if role == string(MO_Slave) {
 				sysState = Slave
 			}
@@ -84,7 +86,6 @@ func PederSinOrderLogicMain() {
 		case msg := <-receivedMessages:
 			peerID, _ := strconv.Atoi(msg.ID)
 			if peerID != id {
-				fmt.Println("We recieved the message: ", msg)
 
 				if sysState == Master && msg.Origin == MO_Slave {
 					slaveInfo := ExtractSlaveInformation(msg)
@@ -94,39 +95,43 @@ func PederSinOrderLogicMain() {
 						obs:          slaveInfo.obs,
 						priOrder:     elevatorPeers[peerID].priOrder,
 						index:        peerID,
+						online:       true,
 					}
 					elevatorPeers[peerID] = &newElev
-					for _, ord := range slaveInfo.CompletedOrders {
-						SetOrder(&MasterOrderPanel, ord, OT_NoOrder, peerID)
-					}
 					for _, ord := range slaveInfo.NewOrders {
+						//fmt.Println("NEW ORDER", ord)
 						SetOrder(&MasterOrderPanel, ord, OT_Order, peerID)
 					}
-
+					for _, ord := range slaveInfo.CompletedOrders {
+						//fmt.Println("COMPLETED ORDER", ord)
+						SetOrder(&MasterOrderPanel, ord, OT_NoOrder, peerID)
+						invalidOrder := elevio.ButtonEvent{Floor: -1}
+						elevatorPeers[peerID].SetPriOrder(invalidOrder) //HERE WAS THE SOLUTION!!
+					}
 				} else if sysState == Slave && msg.Origin == MO_Master {
-					masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_BUTTONS, NUMBER_OF_ELEVATORS)
+					masterInfo := ExtractMasterInformation(msg, NUMBER_OF_FLOORS, NUMBER_OF_COLUMNS, NUMBER_OF_ELEVATORS)
 					MasterOrderPanel = masterInfo.OrderPanel
 
+					fmt.Println("Master ORDERS", MasterOrderPanel)
 					var compOrdersUpdate []elevio.ButtonEvent
 					for _, ord := range completeOrders {
-						if GetOrder(MasterOrderPanel, ord, peerID) != OT_NoOrder {
+						if GetOrder(MasterOrderPanel, ord, id) != OT_NoOrder {
 							compOrdersUpdate = append(compOrdersUpdate, ord)
 						}
 					}
-					completeOrders = append(completeOrders, compOrdersUpdate...)
+					completeOrders = compOrdersUpdate
 					var newOrdersUpdate []elevio.ButtonEvent
 					for _, ord := range newOrders {
-						if GetOrder(MasterOrderPanel, ord, peerID) == OT_Order {
+						if GetOrder(MasterOrderPanel, ord, id) == OT_NoOrder {
 							newOrdersUpdate = append(newOrdersUpdate, ord)
 						}
 					}
-					newOrders = append(newOrders, newOrdersUpdate...)
-					myElevator.SetPriOrder(masterInfo.Priorities[peerID].order)
+					newOrders = newOrdersUpdate
+					myElevator.SetPriOrder(masterInfo.Priorities[id].order)
 				}
 			}
 		//SEND TO NETWORK
 		default:
-			elevatorPeers[elevIndex] = &myElevator
 			switch sysState {
 			case Master:
 				for _, ord := range newOrders {
@@ -145,8 +150,11 @@ func PederSinOrderLogicMain() {
 					}
 				}
 				available = PrioritizeOrders(&MasterOrderPanel, available)
+
 				for _, elev := range available {
-					elevatorPeers[elev.GetIndex()].SetPriOrder(elev.GetPriOrder())
+					priorityOrder := elev.GetPriOrder()
+					index := elev.GetIndex()
+					elevatorPeers[index].SetPriOrder(priorityOrder)
 				}
 				myElevator.SetPriOrder(elevatorPeers[elevIndex].GetPriOrder())
 				priSlice := [NUMBER_OF_ELEVATORS]RemoteOrder{}
@@ -170,6 +178,7 @@ func PederSinOrderLogicMain() {
 					NewOrders:       newOrders,
 					CompletedOrders: completeOrders,
 				}
+				//fmt.Println("SLAVE SEND", slaveInfo)
 				msgTx <- NewSlaveMessage(strconv.Itoa(id), slaveInfo)
 				//If it's not online it needs to handle it's own prioritized order same as master
 				if myElevator.GetOnline() == false {
@@ -180,6 +189,9 @@ func PederSinOrderLogicMain() {
 					newOrders = []elevio.ButtonEvent{}
 					for _, ord := range completeOrders {
 						SetOrder(&MasterOrderPanel, ord, OT_NoOrder, myElevator.GetIndex())
+						invalidOrder := elevio.ButtonEvent{Floor: -1}
+						elevatorPeers[id].SetPriOrder(invalidOrder)
+						//fmt.Println("I've COMPLETED THIS ORDER:", ord)
 					}
 					completeOrders = []elevio.ButtonEvent{}
 
@@ -190,11 +202,10 @@ func PederSinOrderLogicMain() {
 					//fmt.Println("Actual order:", myElevator.GetPriOrder())
 					//TESTING PRINTING
 					//for
-					fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
+					//fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
 
 					// fmt.Println("Actual order:", myElevator.GetPriOrder())
 					// fmt.Println("MASTER_ORDER_PANEL: ", MasterOrderPanel)
-
 				}
 			}
 		}
