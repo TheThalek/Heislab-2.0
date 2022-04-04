@@ -263,7 +263,7 @@ func CheckOrderTimeout(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]in
 
 func RestoreOnline(myElevatorList [NUMBER_OF_ELEVATORS]*Elevator) {
 	for {
-		for _, elev := range len(myElevatorList) {
+		for _, elev := range myElevatorList {
 			elev.SetOnline(true)
 			time.Sleep(10 * time.Second)
 		}
