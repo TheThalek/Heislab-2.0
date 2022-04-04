@@ -2,7 +2,6 @@ package main
 
 import (
 	"Driver-go/elevio"
-	"fmt"
 	"time"
 )
 
@@ -121,7 +120,6 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 						if btn != elvIndex+2 { //if the btn pushed is not a cab-call, compare with the other elevators
 							for _, elv := range availableElevators {
 								cmprCost := calculateOrderCost(order, elv)
-								fmt.Println("FOR ELEVATOR", elv, "THE COST IS", cmprCost)
 								if cmprCost < orderCost {
 									lowestCostAllElevators = cmprCost
 									break
@@ -145,7 +143,6 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 							availableElevators[sliceIndex] = elevator
 						}
 						//fmt.Println("MASTER PANEL", MasterOrderPanel)
-						fmt.Println("OLD ORDER COST:", oldOrderCost, "NEW ORDER COST:", orderCost)
 					}
 				}
 			}
@@ -216,7 +213,7 @@ func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order 
 func CheckOrderTimeout(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myElevatorList [NUMBER_OF_ELEVATORS]*Elevator) {
 	var inProgressTimers []*time.Time
 	var inProgressOrders []elevio.ButtonEvent
-	timeout := 2 * NUMBER_OF_ELEVATORS * time.Second
+	timeout := 4 * time.Second
 	for {
 		for i := 0; i < NUMBER_OF_FLOORS; i++ {
 			for j := 0; j < NUMBER_OF_COLUMNS; j++ {
@@ -263,9 +260,9 @@ func CheckOrderTimeout(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]in
 
 func RestoreOnline(myElevatorList [NUMBER_OF_ELEVATORS]*Elevator) {
 	for {
+		time.Sleep(20 * time.Second)
 		for _, elev := range myElevatorList {
 			elev.SetOnline(true)
-			time.Sleep(10 * time.Second)
 		}
 	}
 }
