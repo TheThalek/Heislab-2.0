@@ -8,7 +8,7 @@ import (
 
 func LocalInit() { //default: 15657 - Set to random then start elevatorserver to elevatorserver --port15054
 
-	elevio.Init("localhost:15055", NUMBER_OF_FLOORS)
+	elevio.Init("localhost:15054", NUMBER_OF_FLOORS)
 
 	elevio.SetDoorOpenLamp(false)
 
@@ -41,6 +41,7 @@ func setLights(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myEle
 				elevio.SetButtonLamp(btnType, floor, lightValue)
 			}
 		}
+	q	time.Sleep(PERIOD)
 	}
 }
 
@@ -201,5 +202,6 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 		case stopEvent := <-drv_stop:
 			fmt.Println("STOP:", stopEvent)
 		}
+		//time.Sleep(PERIOD)
 	}
 }

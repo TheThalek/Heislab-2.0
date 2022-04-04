@@ -129,7 +129,6 @@ func PederSinOrderLogicMain() {
 			}
 		//SEND TO NETWORK
 		default:
-			fmt.Println(MasterOrderPanel)
 			switch sysState {
 			case Master:
 				for _, ord := range newOrders {
