@@ -113,6 +113,7 @@ func LocalControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUM
 
 					//clear the relevant orders
 					var completedOrders []elevio.ButtonEvent
+					completedOrders = append(completedOrders, priorityOrder)
 					//compltOrder := priorityOrder
 					//MAIKEN DU HOLDER PÅ HER!
 					// if compltOrder.Button == elevio.BT_Cab{

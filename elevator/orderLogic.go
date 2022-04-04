@@ -189,6 +189,8 @@ func PederSinOrderLogicMain() {
 					newOrders = []elevio.ButtonEvent{}
 					for _, ord := range completeOrders {
 						SetOrder(&MasterOrderPanel, ord, OT_NoOrder, myElevator.GetIndex())
+						invalidOrder := elevio.ButtonEvent{Floor: -1}
+						elevatorPeers[id].SetPriOrder(invalidOrder)
 						fmt.Println("I've COMPLETED THIS ORDER:", ord)
 					}
 					completeOrders = []elevio.ButtonEvent{}
