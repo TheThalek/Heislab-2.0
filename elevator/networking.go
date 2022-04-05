@@ -214,16 +214,7 @@ func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages c
 	}
 }
 
-func isInSlice(str string, stringSlice []string) bool {
-	for _, s := range stringSlice {
-		if s == str {
-			return true
-		}
-	}
-	return false
-}
-
-func isInSliceInt(i int, intSlice []int) bool {
+func isIntInSlice(i int, intSlice []int) bool {
 	for _, j := range intSlice {
 		if j == i {
 			return true

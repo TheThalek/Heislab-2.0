@@ -6,13 +6,11 @@ import (
 	"time"
 )
 
-//CHANGE: changed name from LocalInit()
-func LocalElevatorInit() { 
-	//Default localhost: 15657. Directly dependent on connection with the elevatorserver 
+func LocalElevatorInit() {
+	//Default localhost: 15657. Directly dependent on connection with the elevatorserver
 	//To initiate connection with elevatorserver use: elevatorserver --port 15054
-	elevio.Init("localhost:15657", NUMBER_OF_FLOORS)
+	elevio.Init("localhost:15001", NUMBER_OF_FLOORS)
 
-	//Reset
 	elevio.SetDoorOpenLamp(false)
 	for f := 0; f < NUMBER_OF_FLOORS; f++ {
 		for b := 0; b < 3; b++ {
@@ -21,14 +19,13 @@ func LocalElevatorInit() {
 	}
 }
 
-//CHANGE: change from setLights to setLocalElevatorLights?
 func setLights(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myElevator *Elevator) {
 	for {
-		for floor := 0; floor < NUMBER_OF_FLOORS; floor++ {
+		for fl := 0; fl < NUMBER_OF_FLOORS; fl++ {
 			var btnColumns = []int{0, 1, myElevator.GetIndex() + 2}
 			for _, btn := range btnColumns {
 				var lightValue bool
-				if MasterOrderPanel[floor][btn] == OT_NoOrder {
+				if MasterOrderPanel[fl][btn] == OT_NoOrder {
 					lightValue = false
 				} else {
 					lightValue = true
@@ -41,7 +38,7 @@ func setLights(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myEle
 				} else {
 					btnType = elevio.BT_Cab
 				}
-				elevio.SetButtonLamp(btnType, floor, lightValue)
+				elevio.SetButtonLamp(btnType, fl, lightValue)
 			}
 		}
 		time.Sleep(PERIOD)
@@ -55,8 +52,7 @@ func pollPriOrder(priOrder chan elevio.ButtonEvent, myElevator *Elevator) {
 	}
 }
 
-//CHANGE: name from LocalControl
-func LocalElevatorControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, takenOrders chan []elevio.ButtonEvent, newOrders chan elevio.ButtonEvent) {
+func LocalElevatorControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, completedOrdersChan chan []elevio.ButtonEvent, newOrdersChan chan elevio.ButtonEvent) {
 
 	elevio.SetMotorDirection(elevio.MD_Down)
 
@@ -129,10 +125,10 @@ func LocalElevatorControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLO
 					} else if GetOrder(*MasterOrderPanel, downOrder, myElevator.GetIndex()) != OT_NoOrder {
 						completedOrders = append(completedOrders, downOrder)
 					}
-					takenOrders <- completedOrders
+					completedOrdersChan <- completedOrders
 
 					var priorityOrder elevio.ButtonEvent
-					priorityOrder.Floor = -1
+					priorityOrder.Floor = -1 //Setting priOrder to invalid floor to avoid re-enter same case
 					myElevator.SetPriOrder(priorityOrder)
 					if !myElevator.GetObs() {
 						doorOpen = false
@@ -142,7 +138,7 @@ func LocalElevatorControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLO
 			}
 
 		case newBtnEvent := <-drv_buttons:
-			newOrders <- newBtnEvent
+			newOrdersChan <- newBtnEvent
 
 		case newFloor := <-drv_floors:
 			myElevator.SetFloor(newFloor)
@@ -163,10 +159,10 @@ func LocalElevatorControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLO
 				elevio.SetMotorDirection(elevio.MD_Stop)
 			}
 
-		case ObstrEvent := <-drv_obstr:
-			fmt.Println("OBSTRUCTION:", ObstrEvent)
-			myElevator.SetObs(ObstrEvent)
-			if ObstrEvent && !moving {
+		case obstrEvent := <-drv_obstr:
+			fmt.Println("OBSTRUCTION:", obstrEvent)
+			myElevator.SetObs(obstrEvent)
+			if obstrEvent && !moving {
 				doorOpen = true
 			} else {
 				doorOpen = false

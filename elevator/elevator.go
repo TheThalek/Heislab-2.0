@@ -15,7 +15,7 @@ type Elevator struct {
 	obs          bool
 	priOrder     elevio.ButtonEvent
 	index        int
-	online       bool
+	available    bool
 }
 
 //CHANGE Nå roter vi litt med ID og INDEX for heis, vi må bestemme oss
@@ -34,8 +34,8 @@ func (e *Elevator) GetObs() bool {
 func (e *Elevator) GetIndex() int {
 	return e.index
 }
-func (e *Elevator) GetOnline() bool {
-	return e.online
+func (e *Elevator) GetAvailable() bool {
+	return e.available
 }
 func (e *Elevator) SetFloor(floor int) {
 	e.currentFloor = floor
@@ -54,8 +54,8 @@ func (e *Elevator) SetObs(obs bool) {
 func (e *Elevator) SetIndex(index int) {
 	e.index = index
 }
-func (e *Elevator) SetOnline(online bool) {
-	e.online = online
+func (e *Elevator) SetAvilable(available bool) {
+	e.available = available
 }
 
 func NewElevator() Elevator {
@@ -65,13 +65,13 @@ func NewElevator() Elevator {
 		obs:          false,
 		priOrder:     elevio.ButtonEvent{Floor: -1, Button: elevio.BT_Cab},
 		index:        -1,
-		online:       false,
+		available:    false,
 	}
 }
 
 func (e *Elevator) DriveTo(order elevio.ButtonEvent) {
 	var elevDir elevio.MotorDirection
-	var motorDir elevio.MotorDirection
+	var motorDir elevio.MotorDirection //CHANGE Nå roter vi litt med ID og INDEX for heis, vi må bestemme oss
 
 	if e.GetCurrentFloor() < order.Floor {
 		motorDir = elevio.MD_Up
