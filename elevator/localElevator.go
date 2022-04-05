@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func LocalInit() { //default: 15657 - Set to random then start elevatorserver to elevatorserver --port15054
+func LocalInit() { //default: 15657 - Set to random then start elevatorserver to elevatorserver --port15054.
 
 	elevio.Init("localhost:39417", NUMBER_OF_FLOORS)
 
