@@ -1,13 +1,10 @@
 package main
 
-//Nå funker ikke go run main.go
-//Run alle filer: go run *.go
-//Evt build and execute: go build && ./Elevator
+//To initiate programe for elevator with ID 0: go run *.go --id 0 
 
-//om du vil kjøre en og en, eller kun noen, go run .\main.go .\\Vår\Sanntidsprogrammerelevator.go .\orderLogic.go .\networking.go
+//CHANGE: delete this file
 func main() {
-	//MS_FSM.maikenSinMain()
-	//singleFSM.ThaleSinMain()
-	PederSinOrderLogicMain()
-	//RunSystemFSM()
+	//go PederSinMain() 
+	for {
+	}
 }
