@@ -2,7 +2,6 @@ package main
 
 import (
 	"Driver-go/elevio"
-	//"fmt"
 )
 
 const NUMBER_OF_FLOORS = 4
@@ -19,6 +18,7 @@ type Elevator struct {
 	online       bool
 }
 
+//CHANGE Nå roter vi litt med ID og INDEX for heis, vi må bestemme oss
 func (e *Elevator) GetDirection() elevio.MotorDirection {
 	return e.direction
 }
