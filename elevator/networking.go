@@ -68,7 +68,6 @@ func StringToNetworkMsg(msg string) NetworkMessage {
 	return netmsg
 }
 
-//for slave
 func ExtractMasterInformation(masterMsg NetworkMessage, numFloors int, numButtons int, numElevs int) MasterInformation {
 	mSplit := strings.Split(masterMsg.Content, DELIM)
 	o := stringToIntArray(mSplit[0], numFloors, numButtons)
@@ -92,7 +91,6 @@ func ExtractMasterInformation(masterMsg NetworkMessage, numFloors int, numButton
 	return MasterInformation{OrderPanel: orders, Priorities: pri}
 }
 
-//for master
 func ExtractSlaveInformation(slaveMsg NetworkMessage) SlaveInformation {
 	mSplit := strings.Split(slaveMsg.Content, DELIM)
 	fl, _ := strconv.Atoi(mSplit[0])
@@ -176,12 +174,12 @@ func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages c
 
 	peerUpdateCh := make(chan peers.PeerUpdate)
 	peerTxEnable := make(chan bool)
-	//Before fucking with the nodes: Transmitter and reciever: 15647, changed it 15659
+	//Default peer portschanged from 15647 to 15659.
 	go peers.Transmitter(15659, strconv.Itoa(id), peerTxEnable)
 	go peers.Receiver(15659, peerUpdateCh)
 
 	msgRx := make(chan NetworkMessage)
-	//Before fucking with the nodes: Transmitter and reciever: 16569, changed it 16581
+	//Default bcast ports changed from 16569 to 16581.
 	go bcast.Transmitter(16581, msgTx)
 	go bcast.Receiver(16581, msgRx)
 
@@ -216,16 +214,7 @@ func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages c
 	}
 }
 
-func isInSlice(str string, stringSlice []string) bool {
-	for _, s := range stringSlice {
-		if s == str {
-			return true
-		}
-	}
-	return false
-}
-
-func isInSliceInt(i int, intSlice []int) bool {
+func isIntInSlice(i int, intSlice []int) bool {
 	for _, j := range intSlice {
 		if j == i {
 			return true
