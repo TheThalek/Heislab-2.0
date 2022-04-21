@@ -206,8 +206,10 @@ func RunNetworkInterface(id int, msgTx <-chan NetworkMessage, receivedMessages c
 			}
 			receivedMessages <- a
 		case <-mTimeout:
-			if id == networkPeers[0] && len(networkPeers) > 1 {
-				roleChan <- string(MO_Master)
+			if len(networkPeers) > 1 {
+				if id == networkPeers[0] {
+					roleChan <- string(MO_Master)
+				}
 			}
 		default:
 		}
