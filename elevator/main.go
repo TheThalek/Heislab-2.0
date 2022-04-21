@@ -50,7 +50,7 @@ func main() {
 
 	go CheckOrderTimeout(&MasterOrderPanel, elevatorPeers)
 
-	go RestoreAvailability(elevatorPeers)
+	//go RestoreAvailability(elevatorPeers)
 
 	for {
 		select {
@@ -134,10 +134,10 @@ func main() {
 				}
 				completeOrders = []elevio.ButtonEvent{}
 
-				var available []Elevator
+				var available []*Elevator
 				for _, elev := range elevatorPeers {
 					if elev.GetAvailable() == true {
-						available = append(available, *elev)
+						available = append(available, elev)
 					}
 				}
 				available = PrioritizeOrders(&MasterOrderPanel, available)
@@ -170,7 +170,7 @@ func main() {
 					CompletedOrders: completeOrders,
 				}
 				msgTx <- NewSlaveMessage(strconv.Itoa(myID), slaveInfo)
-				
+
 				//If it's not online it needs to handle it's own prioritized order same as master
 				if len(onlinePeers) <= 1 {
 
@@ -185,9 +185,9 @@ func main() {
 					}
 					completeOrders = []elevio.ButtonEvent{}
 
-					var myElevatorlist []Elevator = []Elevator{myElevator}
+					var myElevatorlist []*Elevator = []*Elevator{&myElevator}
 					myElevatorlist = PrioritizeOrders(&MasterOrderPanel, myElevatorlist)
-					myElevator = myElevatorlist[0]
+					myElevator = *myElevatorlist[0]
 
 				}
 			}
