@@ -65,7 +65,7 @@ func NewElevator() Elevator {
 		obs:          false,
 		priOrder:     elevio.ButtonEvent{Floor: -1, Button: elevio.BT_Cab},
 		index:        -1,
-		available:    false,
+		ailable:    false,
 	}
 }
 
