@@ -14,8 +14,8 @@ const (
 const (
 	//CT = Cost Type
 	CT_MinCost       = -10000
-	CT_DistanceCost  = 10
-	CT_DirSwitchCost = 100
+	CT_DirSwitchCost = 10
+	CT_DistanceCost  = 100
 	CT_ObsCost       = 100000
 	CT_StayingPut    = 1000000
 )
@@ -61,11 +61,11 @@ func calculateOrderCost(order elevio.ButtonEvent, elevator Elevator) int {
 	return cost
 }
 
-func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, availableElevators []Elevator) []Elevator {
+func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, availableElevators []*Elevator) []*Elevator {
 	for sliceIndex, elev := range availableElevators {
 		elevIndex := elev.GetIndex()
 		orderOld := elev.GetPriOrder()
-		costOrderOld := calculateOrderCost(orderOld, elev)
+		costOrderOld := calculateOrderCost(orderOld, *elev)
 
 		for fl := 0; fl < NUMBER_OF_FLOORS; fl++ {
 			var btnColumns = []int{0, 1, elevIndex + 2} //Button Columns neccesary to check: Up, Down, and the given elevator.
@@ -79,13 +79,13 @@ func PrioritizeOrders(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int
 						Floor:  fl,
 						Button: elevio.ButtonType(button),
 					}
-					var costOrderFound int = calculateOrderCost(orderFound, elev)
+					var costOrderFound int = calculateOrderCost(orderFound, *elev)
 					if costOrderFound < costOrderOld {
 						var minCostAllElevators int = costOrderFound
 						//Only compare with other elevators if it's not a cab-call
 						if btn != elevIndex+2 {
 							for _, compareElev := range availableElevators {
-								compareCost := calculateOrderCost(orderFound, compareElev)
+								compareCost := calculateOrderCost(orderFound, *compareElev)
 								if compareCost < costOrderFound {
 									minCostAllElevators = compareCost
 									break
@@ -165,7 +165,7 @@ func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order 
 func CheckOrderTimeout(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myElevatorList [NUMBER_OF_ELEVATORS]*Elevator) {
 	var inProgressTimers []*time.Time
 	var inProgressOrders [][2]int
-	orderTimeLimit := 4 * time.Second
+	orderTimeLimit := 9 * time.Second
 	for {
 		for fl := 0; fl < NUMBER_OF_FLOORS; fl++ {
 			for btn := 0; btn < NUMBER_OF_COLUMNS; btn++ {
@@ -192,6 +192,7 @@ func CheckOrderTimeout(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]in
 				for i := 0; i < len(myElevatorList); i++ {
 					if myElevatorList[i].GetPriOrder() == order {
 						myElevatorList[i].SetAvilable(false)
+						go RestoreAvailability(myElevatorList)
 					}
 				}
 
@@ -209,12 +210,12 @@ func CheckOrderTimeout(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]in
 }
 
 func RestoreAvailability(myElevatorList [NUMBER_OF_ELEVATORS]*Elevator) {
-	for {
-		time.Sleep(20 * time.Second)
-		for _, elev := range myElevatorList {
-			elev.SetAvilable(true)
-		}
+
+	time.Sleep(3 * time.Second)
+	for _, elev := range myElevatorList {
+		elev.SetAvilable(true)
 	}
+
 }
 
 func isOrderInSlice(ord [2]int, orderSlice [][2]int) bool {
