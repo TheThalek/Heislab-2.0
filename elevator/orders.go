@@ -192,6 +192,8 @@ func CheckOrderTimeout(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]in
 				for i := 0; i < len(myElevatorList); i++ {
 					if myElevatorList[i].GetPriOrder() == order {
 						myElevatorList[i].SetAvilable(false)
+						invalidOrder := elevio.ButtonEvent{Floor: -1}
+						myElevatorList[i].SetPriOrder(invalidOrder)
 						go RestoreAvailability(myElevatorList)
 					}
 				}
