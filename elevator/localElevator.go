@@ -143,7 +143,9 @@ func LocalElevatorControl(myElevator *Elevator, MasterOrderPanel *[NUMBER_OF_FLO
 		case newFloor := <-drv_floors:
 			myElevator.SetFloor(newFloor)
 			elevio.SetFloorIndicator(newFloor)
-
+			
+			time.Sleep(50 * time.Millisecond)
+			
 			myElevator.DriveTo(myElevator.GetPriOrder())
 			if myElevator.GetPriOrder().Floor != newFloor && myElevator.GetPriOrder().Floor != -1 {
 				moving = true
