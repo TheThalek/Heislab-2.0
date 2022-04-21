@@ -164,39 +164,38 @@ func SetOrder(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, order 
 
 func CheckOrderTimeout(MasterOrderPanel *[NUMBER_OF_FLOORS][NUMBER_OF_COLUMNS]int, myElevatorList [NUMBER_OF_ELEVATORS]*Elevator) {
 	var inProgressTimers []*time.Time
-	var inProgressOrders []elevio.ButtonEvent
+	var inProgressOrders [][2]int
 	orderTimeLimit := 4 * time.Second
 	for {
 		for fl := 0; fl < NUMBER_OF_FLOORS; fl++ {
 			for btn := 0; btn < NUMBER_OF_COLUMNS; btn++ {
-				button := btn
-				if button > 2 {
-					button = 2
-				}
-				order := elevio.ButtonEvent{
-					Floor:  fl,
-					Button: elevio.ButtonType(button),
-				}
-				if GetOrder(*MasterOrderPanel, order, 0) == OT_InProgress && !isOrderInSlice(order, inProgressOrders) {
-					inProgressOrders = append(inProgressOrders, order)
+				if MasterOrderPanel[fl][btn] == 2 && !isOrderInSlice([2]int{fl, btn}, inProgressOrders) {
+					inProgressOrders = append(inProgressOrders, [2]int{fl, btn})
 					currentTime := time.Now()
 					inProgressTimers = append(inProgressTimers, &currentTime)
 				}
+
 			}
 		}
 		//Remove timedout orders
 		var inProgressTimersUpdate []*time.Time
-		var inProgressOrdersUpdate []elevio.ButtonEvent
+		var inProgressOrdersUpdate [][2]int
 		for index, t := range inProgressTimers {
+			progressElement := inProgressOrders[index]
+			newButton := progressElement[1]
+			if newButton > 2 {
+				newButton = 2
+			}
+			order := elevio.ButtonEvent{Floor: progressElement[0], Button: elevio.ButtonType(newButton)}
 			if time.Since(*t) > orderTimeLimit {
-				SetOrder(MasterOrderPanel, inProgressOrders[index], OT_Order, 0)
+				MasterOrderPanel[progressElement[0]][progressElement[1]] = OT_Order
 				for i := 0; i < len(myElevatorList); i++ {
-					if myElevatorList[i].GetPriOrder() == inProgressOrders[index] {
+					if myElevatorList[i].GetPriOrder() == order {
 						myElevatorList[i].SetAvilable(false)
 					}
 				}
 
-			} else if GetOrder(*MasterOrderPanel, inProgressOrders[index], 0) != OT_NoOrder {
+			} else if MasterOrderPanel[progressElement[0]][progressElement[1]] != OT_NoOrder {
 				inProgressTimersUpdate = append(inProgressTimersUpdate, inProgressTimers[index])
 				inProgressOrdersUpdate = append(inProgressOrdersUpdate, inProgressOrders[index])
 			}
@@ -218,7 +217,7 @@ func RestoreAvailability(myElevatorList [NUMBER_OF_ELEVATORS]*Elevator) {
 	}
 }
 
-func isOrderInSlice(ord elevio.ButtonEvent, orderSlice []elevio.ButtonEvent) bool {
+func isOrderInSlice(ord [2]int, orderSlice [][2]int) bool {
 	for _, o := range orderSlice {
 		if o == ord {
 			return true
