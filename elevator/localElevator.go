@@ -9,7 +9,7 @@ import (
 func LocalElevatorInit() {
 	//Default localhost: 15657. Directly dependent on connection with the elevatorserver
 	//To initiate connection with elevatorserver use: elevatorserver --port 15054
-	elevio.Init("localhost:15001", NUMBER_OF_FLOORS)
+	elevio.Init("localhost:15002", NUMBER_OF_FLOORS)
 
 	elevio.SetDoorOpenLamp(false)
 	for f := 0; f < NUMBER_OF_FLOORS; f++ {
