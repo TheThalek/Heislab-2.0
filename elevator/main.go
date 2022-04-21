@@ -50,8 +50,6 @@ func main() {
 
 	go CheckOrderTimeout(&MasterOrderPanel, elevatorPeers)
 
-	//go RestoreAvailability(elevatorPeers)
-
 	for {
 		select {
 		case cOrds := <-completeOrderChan:
